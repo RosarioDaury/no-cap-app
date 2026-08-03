@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NoCap — Budget setup</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="device">
+  <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+  <div class="screen" style="padding-top:20px;">
+    <p class="eyebrow">STEP 2 OF 4</p>
+    <p class="h-display" style="font-size:21px;margin-bottom:6px;">Set your caps</p>
+    <p class="body-sm" style="margin-bottom:18px;">Add a category and how much it can take each month.</p>
+
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:11px 13px;">
+        <div class="row-icon" style="background:var(--coral-100);color:var(--coral-700);"><i class="ti ti-shopping-cart"></i></div>
+        <p class="row-title" style="flex:1;">Groceries</p>
+        <input type="number" placeholder="Cap" style="width:78px;">
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:11px 13px;">
+        <div class="row-icon" style="background:var(--teal-100);color:var(--teal-900);"><i class="ti ti-bolt"></i></div>
+        <p class="row-title" style="flex:1;">Utilities & bills</p>
+        <input type="number" placeholder="Cap" style="width:78px;">
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;padding:11px 13px;">
+        <div class="row-icon" style="background:var(--plum-100);color:var(--plum-700);"><i class="ti ti-confetti"></i></div>
+        <div style="flex:1;">
+          <p class="row-title">Fun & going out</p>
+          <p class="row-sub">Ranged cap</p>
+        </div>
+        <input type="text" placeholder="10k–15k" style="width:78px;">
+      </div>
+      <button class="btn btn-secondary" style="border-style:dashed;color:var(--text-secondary);"><i class="ti ti-plus"></i> Add category</button>
+    </div>
+
+    <div style="flex:1;"></div>
+    <button class="btn btn-primary" style="margin:16px 0 10px;">Continue</button>
+  </div>
+</div>
+</body>
+</html>

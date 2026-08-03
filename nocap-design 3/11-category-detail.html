@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NoCap — Category detail</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="device">
+  <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+  <div class="screen" style="padding-top:8px;">
+    <div class="topbar">
+      <button class="icon-btn"><i class="ti ti-arrow-left"></i></button>
+      <p class="topbar-title">Groceries</p>
+      <div style="width:34px;"></div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+      <svg width="66" height="66" viewBox="0 0 36 36" style="flex-shrink:0;">
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(245,166,35,0.18)" stroke-width="3"></circle>
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--gold-500)" stroke-width="3" stroke-dasharray="82 97" stroke-linecap="round" transform="rotate(-90 18 18)"></circle>
+      </svg>
+      <div>
+        <p class="num-lg">RD$20,500</p>
+        <p class="body-sm">of RD$25,000 · 82%</p>
+      </div>
+    </div>
+
+    <!-- inline quick log, category already fixed -->
+    <div class="quicklog" style="margin-bottom:20px;">
+      <p class="eyebrow" style="color:var(--teal-300);margin-bottom:6px;">QUICK LOG TO GROCERIES</p>
+      <input class="quicklog-amt" type="text" value="RD$0" placeholder="RD$0">
+      <button class="btn btn-primary" style="height:40px;font-size:12.5px;">Log expense</button>
+    </div>
+
+    <p class="h-section">This month</p>
+    <div>
+      <div class="row">
+        <div style="flex:1;"><p class="row-title">Weekly market run</p><p class="row-sub">Jul 29</p></div>
+        <p class="row-value">1,250</p>
+      </div>
+      <div class="row">
+        <div style="flex:1;"><p class="row-title">Supermercado Nacional</p><p class="row-sub">Jul 24</p></div>
+        <p class="row-value">4,800</p>
+      </div>
+      <div class="row">
+        <div style="flex:1;"><p class="row-title">Fruits and veg</p><p class="row-sub">Jul 17</p></div>
+        <p class="row-value">2,100</p>
+      </div>
+      <div class="row">
+        <div style="flex:1;"><p class="row-title">Monthly stock-up</p><p class="row-sub">Jul 3</p></div>
+        <p class="row-value">12,350</p>
+      </div>
+    </div>
+
+    <div style="flex:1;"></div>
+    <button class="btn btn-secondary" style="margin:14px 0 20px;">Edit cap</button>
+  </div>
+</div>
+</body>
+</html>

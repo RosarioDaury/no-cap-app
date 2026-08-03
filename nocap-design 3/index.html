@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NoCap — Screen gallery</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body{display:block;padding:40px 24px;background:#EFEDE4;}
+  .gallery{max-width:1200px;margin:0 auto;}
+  .gallery h1{font-family:var(--font-display);font-weight:500;font-size:26px;margin:0 0 6px;}
+  .gallery p{font-size:14px;color:var(--text-secondary);margin:0 0 32px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px;}
+  .tile{text-decoration:none;color:inherit;}
+  .tile iframe{width:100%;height:340px;border:0.5px solid var(--border);border-radius:16px;pointer-events:none;background:#fff;}
+  .tile p{margin:10px 0 0;font-size:13px;font-weight:600;color:var(--text-primary);}
+</style>
+</head>
+<body>
+<div class="gallery">
+  <h1>NoCap — screen gallery</h1>
+  <p>13 screens, shared design system in styles.css. Click any tile to open full size.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+const screens = [
+  ["01-onboarding-welcome.html","Onboarding — welcome"],
+  ["02-onboarding-permissions.html","Onboarding — AI & data"],
+  ["03-budget-setup.html","Budget setup"],
+  ["04-budget-templates.html","Budget templates"],
+  ["05-home-dashboard.html","Home dashboard"],
+  ["06-add-expense.html","Add expense"],
+  ["07-income.html","Income tracking"],
+  ["08-goals.html","Goals"],
+  ["09-debt-tracker.html","Debt tracker"],
+  ["10-history-trends.html","History & trends"],
+  ["11-category-detail.html","Category detail"],
+  ["12-ai-insights.html","AI insights"],
+  ["13-settings.html","Settings"]
+];
+const grid = document.getElementById('grid');
+screens.forEach(([file,label])=>{
+  const a = document.createElement('a');
+  a.href = file; a.className='tile'; a.target='_blank';
+  a.innerHTML = `<iframe src="${file}"></iframe><p>${label}</p>`;
+  grid.appendChild(a);
+});
+</script>
+</body>
+</html>

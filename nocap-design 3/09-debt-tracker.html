@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NoCap — Debt tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="device">
+  <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+  <div class="screen" style="padding-top:8px;">
+    <div class="topbar">
+      <button class="icon-btn"><i class="ti ti-arrow-left"></i></button>
+      <p class="topbar-title">Debt tracker</p>
+      <button class="icon-btn"><i class="ti ti-plus"></i></button>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <p class="eyebrow">TOTAL DEBT REMAINING</p>
+      <p class="num-lg">RD$36,000</p>
+      <p class="body-sm" style="color:var(--teal-700);margin-top:2px;">Down from RD$50,000 · 28% paid off</p>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+        <div class="row-icon" style="background:var(--plum-100);color:var(--plum-700);"><i class="ti ti-credit-card"></i></div>
+        <div style="flex:1;">
+          <p class="row-title">Visa credit card</p>
+          <p class="row-sub">22% APR · min RD$2,500/mo</p>
+        </div>
+        <p class="row-value" style="color:var(--plum-500);">28%</p>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:28%;background:var(--plum-500);"></div></div>
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;">
+        <div><p class="eyebrow" style="margin-bottom:1px;">PAYING</p><p class="row-value">RD$4,000/mo</p></div>
+        <div><p class="eyebrow" style="margin-bottom:1px;">PAYOFF DATE</p><p class="row-value">Apr 2027</p></div>
+      </div>
+    </div>
+
+    <div class="card-flat" style="display:flex;align-items:center;gap:9px;margin-top:12px;">
+      <i class="ti ti-sparkles" style="color:var(--gold-700);font-size:15px;flex-shrink:0;"></i>
+      <p class="body-sm" style="color:var(--gold-700);">Adding RD$1,000/mo clears this 2 months sooner.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

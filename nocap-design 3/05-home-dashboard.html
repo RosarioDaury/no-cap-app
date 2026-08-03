@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NoCap — Home</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="device">
+  <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+  <div class="screen" style="padding-top:10px;">
+    <p class="eyebrow">MONDAY, JUL 31</p>
+    <p class="h-display" style="margin-bottom:14px;">Hey Alex</p>
+
+    <div class="card card-tint-teal" style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <svg width="58" height="58" viewBox="0 0 36 36" style="flex-shrink:0;">
+        <defs>
+          <linearGradient id="ringTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7EE8F5"/>
+            <stop offset="100%" stop-color="#22D3EE"/>
+          </linearGradient>
+        </defs>
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(34,211,238,0.15)" stroke-width="3.5"></circle>
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="url(#ringTeal)" stroke-width="3.5" stroke-dasharray="63 97" stroke-linecap="round" transform="rotate(-90 18 18)"></circle>
+      </svg>
+      <div>
+        <p class="eyebrow" style="margin-bottom:2px;color:var(--teal-300);">ROOM LEFT</p>
+        <p class="num-md" style="font-size:22px;color:var(--teal-300);">RD$23,300</p>
+        <p class="body-sm" style="margin-top:2px;">RD$43,200 of RD$66,500 spent</p>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <p class="h-section" style="margin:0;">Your caps</p>
+      <p class="body-sm" style="color:var(--text-muted);">Tap + to log fast</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:9px;">
+
+      <!-- Groceries: default state -->
+      <div class="card" style="padding:12px 13px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <svg width="34" height="34" viewBox="0 0 36 36" style="flex-shrink:0;">
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(245,166,35,0.18)" stroke-width="4"></circle>
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--gold-500)" stroke-width="4" stroke-dasharray="82 97" stroke-linecap="round" transform="rotate(-90 18 18)"></circle>
+          </svg>
+          <div style="flex:1;">
+            <p class="row-title">Groceries</p>
+            <p class="row-sub">20,500 / 25,000</p>
+          </div>
+          <div class="btn-metal-circle"><i class="ti ti-plus"></i></div>
+        </div>
+      </div>
+
+      <!-- Utilities: quick-log expanded state (shown as example) -->
+      <div class="card" style="padding:12px 13px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <svg width="34" height="34" viewBox="0 0 36 36" style="flex-shrink:0;">
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(34,211,238,0.18)" stroke-width="4"></circle>
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--teal-500)" stroke-width="4" stroke-dasharray="55 97" stroke-linecap="round" transform="rotate(-90 18 18)"></circle>
+          </svg>
+          <div style="flex:1;">
+            <p class="row-title">Utilities & bills</p>
+            <p class="row-sub">9,100 / 16,500</p>
+          </div>
+          <div class="btn-metal-circle" style="background:linear-gradient(145deg,#2a3138,#14171a);box-shadow:0 1px 0 rgba(255,255,255,0.18) inset, 0 4px 10px rgba(0,0,0,0.5), var(--glow-teal);"><i class="ti ti-x"></i></div>
+        </div>
+        <div class="quicklog">
+          <input class="quicklog-amt" type="text" value="RD$0" placeholder="RD$0">
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary" style="height:38px;font-size:12px;flex:1;">Cancel</button>
+            <button class="btn btn-primary" style="height:38px;font-size:12px;flex:1.4;">Log to Utilities</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fun: over cap -->
+      <div class="card card-tint-coral" style="padding:12px 13px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <svg width="34" height="34" viewBox="0 0 36 36" style="flex-shrink:0;">
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(251,68,99,0.2)" stroke-width="4"></circle>
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--coral-500)" stroke-width="4" stroke-dasharray="97 97" stroke-linecap="round" transform="rotate(-90 18 18)"></circle>
+          </svg>
+          <div style="flex:1;">
+            <p class="row-title">Fun & going out</p>
+            <p class="row-sub" style="color:var(--coral-300);">15,800 / 15,000 · over</p>
+          </div>
+          <div class="btn-metal-circle"><i class="ti ti-plus"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-tint-gold" style="display:flex;align-items:center;gap:10px;margin-top:12px;">
+      <i class="ti ti-sparkles" style="color:var(--gold-300);font-size:15px;flex-shrink:0;"></i>
+      <p class="body-sm" style="color:var(--gold-300);">Fun is projected to close ~RD$2,100 over cap.</p>
+    </div>
+
+    <div style="flex:1;"></div>
+  </div>
+  <div class="bottomnav">
+    <a href="05-home-dashboard.html" class="active"><i class="ti ti-home"></i></a>
+    <a href="06-add-expense.html"><i class="ti ti-plus"></i></a>
+    <a href="08-goals.html"><i class="ti ti-target"></i></a>
+    <a href="12-ai-insights.html"><i class="ti ti-sparkles"></i></a>
+    <a href="13-settings.html"><i class="ti ti-settings"></i></a>
+  </div>
+</div>
+</body>
+</html>
