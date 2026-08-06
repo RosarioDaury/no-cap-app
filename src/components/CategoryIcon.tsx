@@ -13,6 +13,9 @@ const map: Record<string, typeof ShoppingCart> = {
   car: Car,
 };
 
+export const CATEGORY_ICON_OPTIONS = Object.keys(map);
+export const CATEGORY_TINT_OPTIONS: TintName[] = ['teal', 'gold', 'plum', 'coral'];
+
 export function CategoryIcon({
   name,
   tint,

@@ -131,6 +131,13 @@ export async function upsertCategory(input: {
   return id;
 }
 
+/** Deletes a category; past expenses keep their amounts with category_id set to NULL. */
+export async function deleteCategory(id: string) {
+  const db = await getDb();
+  await db.runAsync('UPDATE transactions SET category_id = NULL WHERE category_id = ?', [id]);
+  await db.runAsync('DELETE FROM categories WHERE id = ?', [id]);
+}
+
 export async function replaceCategoriesFromTemplate(templateId: string) {
   const template = BUDGET_TEMPLATES.find((t) => t.id === templateId) ?? BUDGET_TEMPLATES[1];
   const db = await getDb();
@@ -333,13 +340,25 @@ export async function addDebt(input: {
   return id;
 }
 
-export async function seedDemoDataIfEmpty() {
-  const cats = await listCategories();
-  if (cats.length === 0) {
-    await replaceCategoriesFromTemplate('balanced');
+/**
+ * Opt-in sample data for demos. Never called automatically after onboarding.
+ * Keeps existing categories. With `force`, clears goals/debts/transactions first.
+ */
+export async function loadSampleData(opts?: { force?: boolean }) {
+  const force = opts?.force ?? false;
+  const db = await getDb();
+
+  if (force) {
+    await db.execAsync('DELETE FROM transactions; DELETE FROM goals; DELETE FROM debts;');
   }
-  const goals = await listGoals();
-  if (goals.length === 0) {
+
+  let categories = await listCategories();
+  if (categories.length === 0) {
+    await replaceCategoriesFromTemplate('balanced');
+    categories = await listCategories();
+  }
+
+  if ((await listGoals()).length === 0) {
     await addGoal({
       name: 'Emergency fund',
       icon: 'umbrella',
@@ -355,8 +374,8 @@ export async function seedDemoDataIfEmpty() {
       dueDate: '2027-03-31',
     });
   }
-  const debts = await listDebts();
-  if (debts.length === 0) {
+
+  if ((await listDebts()).length === 0) {
     await addDebt({
       name: 'Credit card',
       balanceCents: 3600000,
@@ -364,9 +383,8 @@ export async function seedDemoDataIfEmpty() {
       dueDate: '2026-08-15',
     });
   }
-  const txns = await listTransactions({ limit: 1 });
-  if (txns.length === 0) {
-    const categories = await listCategories();
+
+  if ((await listTransactions({ limit: 1 })).length === 0) {
     const byName = Object.fromEntries(categories.map((c) => [c.name, c.id]));
     const samples: { name: string; amount: number; note: string; daysAgo: number }[] = [
       { name: 'Groceries', amount: 125000, note: 'Weekly market run', daysAgo: 1 },
@@ -389,7 +407,6 @@ export async function seedDemoDataIfEmpty() {
         type: 'expense',
       });
     }
-    // bump grocery spend toward design numbers
     const groceryId = byName['Groceries'];
     if (groceryId) {
       const prior = Math.max(0, 2050000 - 125000 - 80000);
@@ -419,7 +436,9 @@ export async function completeOnboarding(opts: {
   displayName?: string;
 }) {
   const db = await getDb();
-  await db.execAsync('DELETE FROM transactions; DELETE FROM categories;');
+  await db.execAsync(
+    'DELETE FROM transactions; DELETE FROM categories; DELETE FROM goals; DELETE FROM debts;',
+  );
   const template = BUDGET_TEMPLATES.find((t) => t.id === opts.templateId) ?? BUDGET_TEMPLATES[0];
   const source = opts.categories?.length
     ? opts.categories
@@ -439,7 +458,7 @@ export async function completeOnboarding(opts: {
       sortOrder: i,
     });
   }
-  await seedDemoDataIfEmpty();
+  // No sample seed — user starts clean. Use Settings → Load sample data.
   await updateSettings({
     aiConsent: opts.aiConsent ? 1 : 0,
     onboardingComplete: 1,

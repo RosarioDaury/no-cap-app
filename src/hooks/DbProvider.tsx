@@ -3,13 +3,14 @@ import { initDatabase } from '@/src/db/database';
 import {
   addTransaction,
   completeOnboarding,
+  deleteCategory,
   getCategoriesWithSpend,
   getSettings,
   listDebts,
   listGoals,
   listTransactions,
+  loadSampleData as seedSampleData,
   monthlyExpenseTotals,
-  seedDemoDataIfEmpty,
   updateSettings,
   upsertCategory,
 } from '@/src/db/repositories';
@@ -42,12 +43,15 @@ type DbContextValue = {
     capCents: number;
     sortOrder?: number;
   }) => Promise<string>;
+  removeCategory: (id: string) => Promise<void>;
   setSetting: (partial: Partial<{
     displayName: string;
     currency: string;
     aiConsent: number;
     capAlertThreshold: number;
   }>) => Promise<void>;
+  /** Opt-in demo data. Pass force to replace goals/debts/transactions. */
+  loadSampleData: (opts?: { force?: boolean }) => Promise<void>;
   incomeTransactions: Awaited<ReturnType<typeof listTransactions>>;
   history: { month: string; totalCents: number }[];
 };
@@ -85,10 +89,7 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       await initDatabase();
-      const s = await getSettings();
-      if (s.onboardingComplete) {
-        await seedDemoDataIfEmpty();
-      }
+      // Do not auto-seed — empty goals/debts/txns until the user logs data or loads samples.
       await refresh();
       setReady(true);
     })().catch(console.error);
@@ -130,8 +131,16 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
         await refresh();
         return id;
       },
+      removeCategory: async (id) => {
+        await deleteCategory(id);
+        await refresh();
+      },
       setSetting: async (partial) => {
         await updateSettings(partial);
+        await refresh();
+      },
+      loadSampleData: async (opts) => {
+        await seedSampleData(opts);
         await refresh();
       },
       incomeTransactions,

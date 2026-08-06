@@ -11,6 +11,7 @@ import {
   Info,
   TrendingUp,
   Wallet,
+  FlaskConical,
 } from 'lucide-react-native';
 import { Screen, DisplayTitle, Eyebrow, ListRow } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
@@ -18,7 +19,25 @@ import { colors, typography } from '@/src/theme/theme';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { settings, setSetting } = useDb();
+  const { settings, setSetting, loadSampleData, categories } = useDb();
+
+  const onLoadSample = () => {
+    Alert.alert(
+      'Load sample data?',
+      'This replaces goals, debts, and transactions with demo numbers. Your categories and caps stay as they are.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Load samples',
+          onPress: () => {
+            loadSampleData({ force: true }).catch(() => {
+              Alert.alert('Could not load samples', 'Try again.');
+            });
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <Screen edges={['top']} padded={false}>
@@ -36,7 +55,7 @@ export default function SettingsScreen() {
           <ListRow
             icon={<LayoutGrid size={16} color={colors.textSecondary} />}
             title="Categories & caps"
-            onPress={() => router.push('/(tabs)')}
+            onPress={() => router.push('/categories')}
           />
           <ListRow
             icon={<Bell size={16} color={colors.textSecondary} />}
@@ -59,6 +78,17 @@ export default function SettingsScreen() {
               thumbColor={settings?.aiConsent ? colors.teal[300] : colors.textMuted}
             />
           </View>
+          <ListRow
+            icon={<FlaskConical size={16} color={colors.textSecondary} />}
+            title="Load sample data"
+            subtitle={
+              categories.length === 0
+                ? 'Needs categories first'
+                : 'Demo goals, debts, and spends'
+            }
+            onPress={categories.length === 0 ? undefined : onLoadSample}
+            showChevron={categories.length > 0}
+          />
           <ListRow
             icon={<Download size={16} color={colors.textSecondary} />}
             title="Export backup"

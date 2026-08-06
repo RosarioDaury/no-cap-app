@@ -2,11 +2,14 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   ScrollView,
   LayoutAnimation,
   Platform,
   UIManager,
+  Modal,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
@@ -21,11 +24,19 @@ import {
   IconButton,
   EmptyState,
   SectionTitle,
+  ButtonPrimary,
+  ButtonSecondary,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { getCategory, listTransactions } from '@/src/db/repositories';
 import { Category, Transaction } from '@/src/db/types';
-import { formatMoney, formatShortDate, progressRatio, tintForProgress } from '@/src/lib/format';
+import {
+  formatMoney,
+  formatShortDate,
+  parseMoneyInput,
+  progressRatio,
+  tintForProgress,
+} from '@/src/lib/format';
 import { colors, typography } from '@/src/theme/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -35,12 +46,15 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 export default function CategoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { categories, settings, logExpense, refresh } = useDb();
+  const { categories, settings, logExpense, refresh, saveCategory } = useDb();
   const currency = settings?.currency ?? 'RD$';
   const live = categories.find((c) => c.id === id);
   const [category, setCategory] = useState<Category | null>(null);
   const [txns, setTxns] = useState<(Transaction & { categoryName?: string })[]>([]);
   const [expanded, setExpanded] = useState(false);
+  const [capModal, setCapModal] = useState(false);
+  const [capText, setCapText] = useState('');
+  const [savingCap, setSavingCap] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -52,7 +66,7 @@ export default function CategoryDetailScreen() {
 
   useEffect(() => {
     load();
-  }, [load, live?.spentCents]);
+  }, [load, live?.spentCents, live?.capCents]);
 
   const spent = live?.spentCents ?? 0;
   const cap = live?.capCents ?? category?.capCents ?? 0;
@@ -60,6 +74,33 @@ export default function CategoryDetailScreen() {
   const progress = progressRatio(spent, cap);
   const tint = tintForProgress(progress, tintBase);
   const name = live?.name ?? category?.name ?? 'Category';
+
+  const openEditCap = () => {
+    setCapText(cap ? String(cap / 100) : '');
+    setCapModal(true);
+  };
+
+  const saveCap = async () => {
+    const source = live ?? category;
+    if (!source || !id) return;
+    setSavingCap(true);
+    try {
+      await saveCategory({
+        id,
+        name: source.name,
+        icon: source.icon,
+        tint: source.tint,
+        capCents: parseMoneyInput(capText),
+        sortOrder: source.sortOrder,
+      });
+      await load();
+      setCapModal(false);
+    } catch {
+      Alert.alert('Could not save cap', 'Try again.');
+    } finally {
+      setSavingCap(false);
+    }
+  };
 
   return (
     <Screen edges={['top']} padded={false}>
@@ -77,7 +118,9 @@ export default function CategoryDetailScreen() {
             <CapRing progress={progress} size={58} strokeWidth={3.5} tint={tint} />
             <View style={{ flex: 1 }}>
               <Text style={styles.amount}>{formatMoney(spent, currency)}</Text>
-              <BodySm>of {formatMoney(cap, currency)} cap</BodySm>
+              <BodySm>
+                of {formatMoney(cap, currency)} · {Math.round(progress * 100)}%
+              </BodySm>
             </View>
             <QuickAddButton
               expanded={expanded}
@@ -107,7 +150,7 @@ export default function CategoryDetailScreen() {
           ) : null}
         </Card>
 
-        <SectionTitle style={{ marginTop: 18 }}>Recent</SectionTitle>
+        <SectionTitle style={{ marginTop: 18 }}>This month</SectionTitle>
         {txns.length === 0 ? (
           <EmptyState title="No transactions" message="Tap + to log a spend to this category." />
         ) : (
@@ -123,7 +166,35 @@ export default function CategoryDetailScreen() {
             ))}
           </View>
         )}
+
+        <ButtonSecondary label="Edit cap" onPress={openEditCap} style={{ marginTop: 20 }} />
       </ScrollView>
+
+      <Modal visible={capModal} transparent animationType="slide">
+        <View style={styles.backdrop}>
+          <View style={styles.sheet}>
+            <DisplayTitle style={{ fontSize: 18, marginBottom: 8 }}>Edit cap</DisplayTitle>
+            <BodySm style={{ marginBottom: 12 }}>Monthly limit for {name}</BodySm>
+            <TextInput
+              value={capText}
+              onChangeText={setCapText}
+              placeholder={`${currency}0`}
+              placeholderTextColor={colors.textMuted}
+              keyboardType="decimal-pad"
+              style={styles.input}
+              autoFocus
+            />
+            <View style={styles.actions}>
+              <ButtonSecondary
+                label="Cancel"
+                style={{ flex: 1 }}
+                onPress={() => setCapModal(false)}
+              />
+              <ButtonPrimary label="Save" loading={savingCap} style={{ flex: 1 }} onPress={saveCap} />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -176,5 +247,35 @@ const styles = StyleSheet.create({
     fontFamily: typography.display,
     fontSize: 13,
     color: colors.textPrimary,
+  },
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 36,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  input: {
+    height: 42,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+    color: colors.textPrimary,
+    paddingHorizontal: 12,
+    fontFamily: typography.ui,
+    fontSize: 13,
+    marginBottom: 14,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 8,
   },
 });
