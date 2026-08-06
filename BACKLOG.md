@@ -116,16 +116,17 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 7. Expense date picker
+### 7. Expense date picker — DONE
 
 | | |
 |--|--|
-| **Why** | Add Expense hardcodes “Today”; backdating is impossible. |
-| **Files** | [`app/add-expense.tsx`](app/add-expense.tsx) |
+| **Status** | Completed (awaiting commit confirmation) |
+| **What changed** | Add Expense date row opens `@react-native-community/datetimepicker`; selected date saved on the transaction; defaults to today. |
+| **Files** | [`app/add-expense.tsx`](app/add-expense.tsx), `package.json` / lockfile, `app.json` plugin |
 | **Acceptance criteria** | |
-| | - Date row opens a date picker (native or calendar sheet) |
-| | - Selected date is saved on the transaction |
-| | - Default remains today |
+| | - [x] Date row opens picker |
+| | - [x] Selected date saved |
+| | - [x] Default today |
 
 ---
 
@@ -379,7 +380,7 @@ P0
 P1
 [x] 5. Transaction edit & delete
 [x] 6. Cap alerts
-[ ] 7. Expense date picker
+[x] 7. Expense date picker
 [ ] 8. Income month filter + spent/net
 [ ] 9. Export / import backup
 [ ] 10. Currency + display name settings

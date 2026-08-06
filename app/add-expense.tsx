@@ -1,7 +1,16 @@
 import { useMemo, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Platform,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { X, Calendar } from 'lucide-react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import {
   Screen,
   Eyebrow,
@@ -12,8 +21,21 @@ import {
   Card,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
-import { formatMoney, parseMoneyInput, todayISO } from '@/src/lib/format';
+import { formatMoney, formatShortDate, parseMoneyInput, todayISO } from '@/src/lib/format';
 import { colors, typography } from '@/src/theme/theme';
+
+function toISODate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function fromISODate(iso: string): Date {
+  return new Date(`${iso}T12:00:00`);
+}
+
+function dateLabel(iso: string): string {
+  if (iso === todayISO()) return `Today, ${formatShortDate(iso)}`;
+  return formatShortDate(iso);
+}
 
 export default function AddExpenseModal() {
   const router = useRouter();
@@ -22,10 +44,21 @@ export default function AddExpenseModal() {
   const [amountRaw, setAmountRaw] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(categories[0]?.id ?? null);
   const [note, setNote] = useState('');
+  const [dateISO, setDateISO] = useState(todayISO());
+  const [showPicker, setShowPicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const amountCents = useMemo(() => parseMoneyInput(amountRaw), [amountRaw]);
+
+  const onDateChange = (_event: DateTimePickerEvent, selected?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowPicker(false);
+    }
+    if (selected) {
+      setDateISO(toISODate(selected));
+    }
+  };
 
   const onSubmit = async () => {
     if (!categoryId) {
@@ -43,7 +76,7 @@ export default function AddExpenseModal() {
         categoryId,
         amountCents,
         note,
-        date: todayISO(),
+        date: dateISO,
       });
       router.back();
     } catch {
@@ -98,10 +131,33 @@ export default function AddExpenseModal() {
         />
 
         <SectionTitle>Date</SectionTitle>
-        <Card variant="flat" style={styles.dateRow}>
-          <Calendar size={15} color={colors.textMuted} />
-          <Text style={styles.dateText}>Today</Text>
-        </Card>
+        <Pressable onPress={() => setShowPicker((v) => !v)}>
+          <Card variant="flat" style={styles.dateRow}>
+            <Calendar size={15} color={colors.textMuted} />
+            <Text style={styles.dateText}>{dateLabel(dateISO)}</Text>
+          </Card>
+        </Pressable>
+
+        {showPicker ? (
+          <View style={styles.pickerWrap}>
+            <DateTimePicker
+              value={fromISODate(dateISO)}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={onDateChange}
+              maximumDate={new Date()}
+              themeVariant="dark"
+            />
+            {Platform.OS === 'ios' ? (
+              <ButtonPrimary
+                label="Done"
+                compact
+                onPress={() => setShowPicker(false)}
+                style={{ marginTop: 8 }}
+              />
+            ) : null}
+          </View>
+        ) : null}
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -167,12 +223,21 @@ const styles = StyleSheet.create({
     height: 40,
     paddingVertical: 0,
     paddingHorizontal: 14,
-    marginBottom: 24,
+    marginBottom: 12,
   },
   dateText: {
     fontFamily: typography.ui,
     fontSize: 13,
     color: colors.textPrimary,
+  },
+  pickerWrap: {
+    marginBottom: 16,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+    paddingBottom: 8,
   },
   error: {
     fontFamily: typography.ui,
