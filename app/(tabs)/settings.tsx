@@ -23,6 +23,7 @@ import {
   Wallet,
   FlaskConical,
   User,
+  RotateCcw,
 } from 'lucide-react-native';
 import { Screen, DisplayTitle, Eyebrow, ListRow } from '@/src/components';
 import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
@@ -36,7 +37,7 @@ const CURRENCY_OPTIONS = [
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { settings, setSetting, loadSampleData, categories, exportBackup, importBackup } =
+  const { settings, setSetting, loadSampleData, categories, exportBackup, importBackup, resetData } =
     useDb();
 
   const [nameModal, setNameModal] = useState(false);
@@ -128,6 +129,38 @@ export default function SettingsScreen() {
     }
   };
 
+  const onReset = () => {
+    Alert.alert(
+      'Reset NoCap?',
+      'This permanently deletes all categories, transactions, goals, and debts on this device.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Are you sure?',
+              'You will start onboarding again. Export a backup first if you need your data.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Reset everything',
+                  style: 'destructive',
+                  onPress: () => {
+                    resetData().catch(() => {
+                      Alert.alert('Reset failed', 'Try again.');
+                    });
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <Screen edges={['top']} padded={false}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -207,6 +240,12 @@ export default function SettingsScreen() {
             title="Import backup"
             subtitle="Replaces all local data"
             onPress={onImport}
+          />
+          <ListRow
+            icon={<RotateCcw size={16} color={colors.coral[500]} />}
+            title="Reset NoCap"
+            subtitle="Delete all data and restart onboarding"
+            onPress={onReset}
             last
           />
         </View>
@@ -236,8 +275,8 @@ export default function SettingsScreen() {
           <ListRow
             icon={<Moon size={16} color={colors.textSecondary} />}
             title="Theme"
-            value="Dark"
-            onPress={() => {}}
+            value="Dark (only)"
+            showChevron={false}
           />
           <ListRow
             icon={<Info size={16} color={colors.textSecondary} />}

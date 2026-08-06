@@ -601,3 +601,21 @@ export async function completeOnboarding(opts: {
     displayName: opts.displayName ?? 'Alex',
   });
 }
+
+/** Wipe all budget data and return to a fresh onboarding state. */
+export async function resetAllData(): Promise<void> {
+  const db = await getDb();
+  await db.execAsync(`
+    DELETE FROM transactions;
+    DELETE FROM categories;
+    DELETE FROM goals;
+    DELETE FROM debts;
+    UPDATE settings SET
+      display_name = 'Alex',
+      currency = 'RD$',
+      ai_consent = 0,
+      onboarding_complete = 0,
+      cap_alert_threshold = 80
+    WHERE id = 1;
+  `);
+}

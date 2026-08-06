@@ -1,10 +1,20 @@
 import { colors, typography, TintName, tintPalette } from '@/src/theme/theme';
 
+/**
+ * Format an amount stored as integer cents.
+ * RD$ shows whole pesos (common for local budgeting); USD/EUR-style symbols show 2 decimals.
+ */
 export function formatMoney(cents: number, currencySymbol = 'RD$'): string {
   const negative = cents < 0;
   const abs = Math.abs(cents);
-  const whole = Math.floor(abs / 100);
-  const formatted = whole.toLocaleString('en-US');
+  const showDecimals =
+    currencySymbol === 'USD' || currencySymbol === '$' || currencySymbol === '€';
+  const formatted = showDecimals
+    ? (abs / 100).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    : Math.floor(abs / 100).toLocaleString('en-US');
   return `${negative ? '-' : ''}${currencySymbol}${formatted}`;
 }
 

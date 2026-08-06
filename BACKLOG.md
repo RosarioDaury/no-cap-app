@@ -248,67 +248,63 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ## P3 — Low / polish
 
-### 19. Real app icon & splash
+### 19. Real app icon & splash — DONE
 
 | | |
 |--|--|
 | **Why** | Expo defaults only; splash background is already dark in `app.json` but art is generic. |
-| **Files** | [`assets/`](assets/), [`app.json`](app.json) |
-| **Acceptance criteria** | Branded icon + splash approved for store listing prep |
+| **Files** | [`assets/images/`](assets/images/), [`app.json`](app.json) |
+| **Done** | Branded three-ring NoCap mark for icon, splash, favicon, and Android adaptive foreground |
 
 ---
 
-### 20. Remove dead Expo template leftovers
+### 20. Remove dead Expo template leftovers — DONE
 
 | | |
 |--|--|
 | **Why** | Unused template files and unused Tabler package add noise. |
-| **Files** | [`components/EditScreenInfo.tsx`](components/EditScreenInfo.tsx), [`components/Themed.tsx`](components/Themed.tsx), [`constants/Colors.ts`](constants/Colors.ts), etc.; `@tabler/icons-react-native` in [`package.json`](package.json) |
-| **Acceptance criteria** | |
-| | - Delete unused template components **or** migrate icons to Tabler and drop Lucide |
-| | - `package.json` only lists used deps (`@gorhom/bottom-sheet` handled in task 15) |
+| **Files** | removed `components/`, `constants/`; dropped `@tabler/icons-react-native` |
+| **Done** | Template leftovers deleted; Lucide kept as the icon set |
 
 ---
 
-### 21. Reset / clear local data
+### 21. Reset / clear local data — DONE
 
 | | |
 |--|--|
 | **Why** | No Settings path to wipe DB and re-run onboarding. |
-| **Files** | [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), new reset helper in `src/db/` |
-| **Acceptance criteria** | |
-| | - “Reset NoCap” with double confirm |
-| | - Clears all tables / settings; routes back to welcome |
+| **Files** | [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), [`src/db/repositories.ts`](src/db/repositories.ts) `resetAllData` |
+| **Done** | “Reset NoCap” with double confirm; clears tables and returns to welcome |
 
 ---
 
-### 22. Money formatting edge cases
+### 22. Money formatting edge cases — DONE
 
 | | |
 |--|--|
 | **Why** | `formatMoney` currently drops fractional cents (whole units only). Fine for RD$ pesos-as-cents storage if always whole, but document or support decimals if USD cents matter. |
 | **Files** | [`src/lib/format.ts`](src/lib/format.ts) |
-| **Acceptance criteria** | Document storage unit; show decimals when currency needs them |
+| **Done** | Documented integer-cents storage; RD$ whole units; USD/`$`/`€` show 2 decimals |
 
 ---
 
-### 23. SQLite goals query robustness
+### 23. SQLite goals query robustness — DONE
 
 | | |
 |--|--|
 | **Why** | `ORDER BY due_date ASC NULLS LAST` may be fragile depending on SQLite / expo-sqlite version. |
 | **Files** | [`src/db/repositories.ts`](src/db/repositories.ts) `listGoals` |
-| **Acceptance criteria** | Sorting works on iOS + Android without SQL errors |
+| **Done** | Uses portable `CASE WHEN due_date IS NULL THEN 1 ELSE 0 END` (no `NULLS LAST`) |
 
 ---
 
-### 24. Theme row honesty
+### 24. Theme row honesty — DONE
 
 | | |
 |--|--|
 | **Why** | Settings shows Theme → “Dark” with empty press. Dark-only is fine per handoff. |
 | **Files** | [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx) |
-| **Acceptance criteria** | Remove chevron / disable row, or label “Dark (only)” so it doesn’t look broken |
+| **Done** | Labeled “Dark (only)” with no chevron / press handler |
 
 ---
 
@@ -372,12 +368,12 @@ P2
 [x] 18. Home insight teaser (if in design)
 
 P3
-[ ] 19. App icon & splash
-[ ] 20. Remove template leftovers / unused packages
-[ ] 21. Reset local data
-[ ] 22. Money format / decimals policy
-[ ] 23. Goals SQL sort robustness
-[ ] 24. Theme row honesty
+[x] 19. App icon & splash
+[x] 20. Remove template leftovers / unused packages
+[x] 21. Reset local data
+[x] 22. Money format / decimals policy
+[x] 23. Goals SQL sort robustness
+[x] 24. Theme row honesty
 ```
 
 ---

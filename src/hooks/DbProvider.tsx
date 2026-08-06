@@ -22,6 +22,7 @@ import {
   loadSampleData as seedSampleData,
   logDebtPayment,
   monthlyExpenseTotals,
+  resetAllData,
   updateDebt,
   updateGoal,
   updateSettings,
@@ -93,6 +94,7 @@ type DbContextValue = {
   removeTransaction: (id: string) => Promise<void>;
   exportBackup: () => Promise<void>;
   importBackup: () => Promise<'canceled' | 'imported'>;
+  resetData: () => Promise<void>;
   setSetting: (partial: Partial<{
     displayName: string;
     currency: string;
@@ -255,6 +257,10 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
           await refresh();
         }
         return result;
+      },
+      resetData: async () => {
+        await resetAllData();
+        await refresh();
       },
       setSetting: async (partial) => {
         await updateSettings(partial);
