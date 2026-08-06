@@ -7,7 +7,7 @@ import { parseMoneyInput } from '@/src/lib/format';
 type QuickLogPanelProps = {
   categoryName: string;
   currencySymbol?: string;
-  onSubmit: (amountCents: number) => Promise<void> | void;
+  onSubmit: (amountCents: number, note?: string) => Promise<void> | void;
   onCancel: () => void;
 };
 
@@ -18,6 +18,7 @@ export function QuickLogPanel({
   onCancel,
 }: QuickLogPanelProps) {
   const [raw, setRaw] = useState('');
+  const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,8 +31,9 @@ export function QuickLogPanel({
     setLoading(true);
     setError(null);
     try {
-      await onSubmit(cents);
+      await onSubmit(cents, note.trim() || undefined);
       setRaw('');
+      setNote('');
     } catch {
       setError('Could not save. Try again.');
     } finally {
@@ -52,6 +54,15 @@ export function QuickLogPanel({
         keyboardType="decimal-pad"
         style={styles.amount}
         autoFocus
+        accessibilityLabel={`Amount for ${categoryName}`}
+      />
+      <TextInput
+        value={note}
+        onChangeText={setNote}
+        placeholder="Note (optional)"
+        placeholderTextColor={colors.textMuted}
+        style={styles.note}
+        accessibilityLabel="Expense note"
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <View style={styles.actions}>
@@ -86,8 +97,16 @@ const styles = StyleSheet.create({
     fontFamily: typography.display,
     fontSize: 22,
     color: colors.teal[300],
-    marginBottom: 10,
+    marginBottom: 8,
     padding: 0,
+  },
+  note: {
+    fontFamily: typography.ui,
+    fontSize: 13,
+    color: colors.textPrimary,
+    marginBottom: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 0,
   },
   actions: {
     flexDirection: 'row',

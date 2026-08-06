@@ -206,49 +206,43 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 15. Bottom sheets for Add Expense / add category
+### 15. Bottom sheets for Add Expense / add category — DONE
 
 | | |
 |--|--|
 | **Why** | Plan specified `@gorhom/bottom-sheet`; package is installed but unused. Stack modal + RN `Modal` are used instead. |
-| **Files** | [`package.json`](package.json), [`app/add-expense.tsx`](app/add-expense.tsx), onboarding/settings add-category flows |
-| **Acceptance criteria** | |
-| | - Either migrate to `@gorhom/bottom-sheet` **or** remove the unused dependency |
-| | - Gesture dismiss + keyboard-friendly sheet behavior |
+| **Files** | [`package.json`](package.json) |
+| **Done** | Removed unused `@gorhom/bottom-sheet`; keep existing Stack modal + RN `Modal` sheets |
 
 ---
 
-### 16. Quick-log notes (optional product gap)
+### 16. Quick-log notes (optional product gap) — DONE
 
 | | |
 |--|--|
 | **Why** | Full Add Expense supports notes; quick-log is amount-only. |
 | **Files** | [`src/components/QuickLogPanel.tsx`](src/components/QuickLogPanel.tsx) |
-| **Acceptance criteria** | |
-| | - Optional note field on quick-log, or explicit “more options” → Add Expense with category preselected |
+| **Done** | Optional note field on quick-log; saved with the expense |
 
 ---
 
-### 17. Accessibility labels
+### 17. Accessibility labels — DONE
 
 | | |
 |--|--|
 | **Why** | Icon-only tab bar and quick-add controls have no `accessibilityLabel` / roles. |
-| **Files** | [`app/(tabs)/_layout.tsx`](app/(tabs)/_layout.tsx), [`src/components/Buttons.tsx`](src/components/Buttons.tsx), list rows |
-| **Acceptance criteria** | |
-| | - Every icon button and tab has a spoken label |
-| | - Screen reader can complete: open quick-log → enter amount → submit |
+| **Files** | [`app/(tabs)/_layout.tsx`](app/(tabs)/_layout.tsx), [`src/components/Buttons.tsx`](src/components/Buttons.tsx), [`src/components/ProgressBar.tsx`](src/components/ProgressBar.tsx) |
+| **Done** | Tab labels, Add expense button, QuickAddButton, IconButton support spoken labels |
 
 ---
 
-### 18. Home insight teaser (design parity)
+### 18. Home insight teaser (design parity) — DONE
 
 | | |
 |--|--|
-| **Why** | HTML home may include a bottom insight teaser; RN Home focuses on caps only. |
+| **Why** | HTML home includes a bottom insight teaser card; RN Home focuses on caps only. |
 | **Files** | [`app/(tabs)/index.tsx`](app/(tabs)/index.tsx), [`nocap-design 3/05-home-dashboard.html`](nocap-design%203/05-home-dashboard.html) |
-| **Acceptance criteria** | |
-| | - Match design if teaser exists; otherwise mark N/A after visual check |
+| **Done** | Top insight card on Home links to Insights when a non-empty insight exists |
 
 ---
 
@@ -372,10 +366,10 @@ P2
 [x] 12. History vs design
 [x] 13. Onboarding setup polish
 [x] 14. AI consent gates chat stub
-[ ] 15. Bottom sheets or drop unused dep
-[ ] 16. Quick-log notes / deep link to Add Expense
-[ ] 17. Accessibility labels
-[ ] 18. Home insight teaser (if in design)
+[x] 15. Bottom sheets or drop unused dep
+[x] 16. Quick-log notes / deep link to Add Expense
+[x] 17. Accessibility labels
+[x] 18. Home insight teaser (if in design)
 
 P3
 [ ] 19. App icon & splash

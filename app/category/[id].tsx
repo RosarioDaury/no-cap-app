@@ -222,9 +222,9 @@ export default function CategoryDetailScreen() {
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setExpanded(false);
               }}
-              onSubmit={async (amountCents) => {
+              onSubmit={async (amountCents, note) => {
                 if (!id) return;
-                await logExpense({ categoryId: id, amountCents });
+                await logExpense({ categoryId: id, amountCents, note });
                 await refresh();
                 await load();
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

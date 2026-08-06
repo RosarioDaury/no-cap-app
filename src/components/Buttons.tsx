@@ -71,7 +71,12 @@ export function QuickAddButton({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={expanded ? 'Close quick log' : 'Quick log expense'}
+      style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
+    >
       <LinearGradient
         colors={
           expanded

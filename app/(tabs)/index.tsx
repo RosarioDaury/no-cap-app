@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Bell } from 'lucide-react-native';
+import { Bell, Sparkles } from 'lucide-react-native';
 import {
   Screen,
   Eyebrow,
@@ -17,7 +17,8 @@ import {
 import { useDb } from '@/src/hooks/DbProvider';
 import { formatDisplayDate, formatMoney, progressRatio, tintForProgress } from '@/src/lib/format';
 import { capAlertLevel, categoriesAtAlert } from '@/src/lib/capAlerts';
-import { colors, typography } from '@/src/theme/theme';
+import { buildInsights } from '@/src/lib/insights';
+import { colors, typography, tintPalette } from '@/src/theme/theme';
 import { CategoryWithSpend } from '@/src/db/types';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -26,7 +27,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function HomeDashboard() {
   const router = useRouter();
-  const { settings, categories, logExpense, refresh } = useDb();
+  const { settings, categories, debts, logExpense, refresh } = useDb();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const currency = settings?.currency ?? 'RD$';
   const threshold = settings?.capAlertThreshold ?? 80;
@@ -48,6 +49,11 @@ export default function HomeDashboard() {
   );
   const overCount = alertCats.filter((c) => capAlertLevel(c, threshold) === 'over').length;
   const warnCount = alertCats.length - overCount;
+
+  const insightTeaser = useMemo(() => {
+    const cards = buildInsights(categories, debts, currency);
+    return cards.find((c) => c.id !== 'empty') ?? null;
+  }, [categories, debts, currency]);
 
   const toggle = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -114,8 +120,8 @@ export default function HomeDashboard() {
                 expanded={expandedId === cat.id}
                 onToggle={() => toggle(cat.id)}
                 onOpen={() => router.push(`/category/${cat.id}`)}
-                onSubmit={async (amountCents) => {
-                  await logExpense({ categoryId: cat.id, amountCents });
+                onSubmit={async (amountCents, note) => {
+                  await logExpense({ categoryId: cat.id, amountCents, note });
                   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                   setExpandedId(null);
                 }}
@@ -127,6 +133,41 @@ export default function HomeDashboard() {
             ))}
           </View>
         )}
+
+        {insightTeaser ? (
+          <Pressable
+            onPress={() => router.push('/(tabs)/insights')}
+            style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel={`Insight: ${insightTeaser.body}`}
+          >
+            <Card
+              variant="tint"
+              tint={insightTeaser.tone === 'coral' ? 'coral' : 'gold'}
+              style={styles.insightTeaser}
+            >
+              <Sparkles
+                size={15}
+                color={
+                  insightTeaser.tone === 'coral'
+                    ? tintPalette.coral[300]
+                    : tintPalette.gold[300]
+                }
+              />
+              <BodySm
+                style={{
+                  flex: 1,
+                  color:
+                    insightTeaser.tone === 'coral'
+                      ? tintPalette.coral[300]
+                      : tintPalette.gold[300],
+                }}
+              >
+                {insightTeaser.body}
+              </BodySm>
+            </Card>
+          </Pressable>
+        ) : null}
       </ScrollView>
     </Screen>
   );
@@ -148,7 +189,7 @@ function CategoryCapRow({
   expanded: boolean;
   onToggle: () => void;
   onOpen: () => void;
-  onSubmit: (cents: number) => Promise<void>;
+  onSubmit: (cents: number, note?: string) => Promise<void>;
   onCancel: () => void;
 }) {
   const progress = progressRatio(cat.spentCents, cat.capCents);
@@ -228,6 +269,12 @@ const styles = StyleSheet.create({
     fontFamily: typography.display,
     fontSize: 22,
     color: colors.teal[300],
+  },
+  insightTeaser: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 12,
   },
   sectionHeader: {
     flexDirection: 'row',

@@ -19,13 +19,17 @@ export function ProgressBar({
 export function IconButton({
   onPress,
   children,
+  accessibilityLabel,
 }: {
   onPress?: () => void;
   children: React.ReactNode;
+  accessibilityLabel?: string;
 }) {
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [styles.iconBtn, { opacity: pressed ? 0.7 : 1 }]}
     >
       {children}

@@ -41,16 +41,22 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          title: 'Home',
+          tabBarAccessibilityLabel: 'Home',
           tabBarIcon: ({ focused }) => <TabIcon Icon={Home} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="add"
         options={{
+          title: 'Add expense',
+          tabBarAccessibilityLabel: 'Add expense',
           tabBarButton: () => (
             <Pressable
               onPress={() => router.push('/add-expense')}
               style={styles.addHit}
+              accessibilityRole="button"
+              accessibilityLabel="Add expense"
             >
               <View style={styles.addWrap}>
                 <Plus size={19} color={colors.textMuted} />
@@ -68,18 +74,24 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="goals"
         options={{
+          title: 'Goals',
+          tabBarAccessibilityLabel: 'Goals',
           tabBarIcon: ({ focused }) => <TabIcon Icon={Target} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="insights"
         options={{
+          title: 'Insights',
+          tabBarAccessibilityLabel: 'Insights',
           tabBarIcon: ({ focused }) => <TabIcon Icon={Sparkles} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
+          title: 'Settings',
+          tabBarAccessibilityLabel: 'Settings',
           tabBarIcon: ({ focused }) => <TabIcon Icon={Settings} focused={focused} />,
         }}
       />
