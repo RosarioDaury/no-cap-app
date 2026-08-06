@@ -1,9 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { initDatabase } from '@/src/db/database';
 import {
+  addGoal,
   addTransaction,
   completeOnboarding,
+  contributeToGoal,
   deleteCategory,
+  deleteGoal,
   getCategoriesWithSpend,
   getSettings,
   listDebts,
@@ -11,10 +14,20 @@ import {
   listTransactions,
   loadSampleData as seedSampleData,
   monthlyExpenseTotals,
+  updateGoal,
   updateSettings,
   upsertCategory,
 } from '@/src/db/repositories';
 import { AppSettings, CategoryWithSpend, Debt, Goal, TintName } from '@/src/db/types';
+
+type GoalInput = {
+  id?: string;
+  name: string;
+  icon: string;
+  targetCents: number;
+  savedCents?: number;
+  dueDate?: string | null;
+};
 
 type DbContextValue = {
   ready: boolean;
@@ -44,6 +57,9 @@ type DbContextValue = {
     sortOrder?: number;
   }) => Promise<string>;
   removeCategory: (id: string) => Promise<void>;
+  saveGoal: (input: GoalInput) => Promise<string>;
+  removeGoal: (id: string) => Promise<void>;
+  contributeGoal: (id: string, amountCents: number) => Promise<void>;
   setSetting: (partial: Partial<{
     displayName: string;
     currency: string;
@@ -133,6 +149,31 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
       },
       removeCategory: async (id) => {
         await deleteCategory(id);
+        await refresh();
+      },
+      saveGoal: async (input) => {
+        if (input.id) {
+          await updateGoal({
+            id: input.id,
+            name: input.name,
+            icon: input.icon,
+            targetCents: input.targetCents,
+            savedCents: input.savedCents ?? 0,
+            dueDate: input.dueDate,
+          });
+          await refresh();
+          return input.id;
+        }
+        const id = await addGoal(input);
+        await refresh();
+        return id;
+      },
+      removeGoal: async (id) => {
+        await deleteGoal(id);
+        await refresh();
+      },
+      contributeGoal: async (id, amountCents) => {
+        await contributeToGoal(id, amountCents);
         await refresh();
       },
       setSetting: async (partial) => {

@@ -278,7 +278,7 @@ export async function listGoals(): Promise<Goal[]> {
     target_cents: number;
     saved_cents: number;
     due_date: string | null;
-  }>('SELECT * FROM goals ORDER BY due_date ASC NULLS LAST, name ASC');
+  }>('SELECT * FROM goals ORDER BY CASE WHEN due_date IS NULL THEN 1 ELSE 0 END, due_date ASC, name ASC');
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -304,6 +304,48 @@ export async function addGoal(input: {
     [id, input.name, input.icon, input.targetCents, input.savedCents ?? 0, input.dueDate ?? null],
   );
   return id;
+}
+
+export async function updateGoal(input: {
+  id: string;
+  name: string;
+  icon: string;
+  targetCents: number;
+  savedCents: number;
+  dueDate?: string | null;
+}) {
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE goals SET
+      name = ?,
+      icon = ?,
+      target_cents = ?,
+      saved_cents = ?,
+      due_date = ?
+     WHERE id = ?`,
+    [
+      input.name,
+      input.icon,
+      input.targetCents,
+      input.savedCents,
+      input.dueDate ?? null,
+      input.id,
+    ],
+  );
+}
+
+export async function contributeToGoal(id: string, amountCents: number) {
+  if (amountCents <= 0) return;
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE goals SET saved_cents = saved_cents + ? WHERE id = ?`,
+    [amountCents, id],
+  );
+}
+
+export async function deleteGoal(id: string) {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM goals WHERE id = ?', [id]);
 }
 
 export async function listDebts(): Promise<Debt[]> {

@@ -53,18 +53,19 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 3. Goals — full CRUD + contribute
+### 3. Goals — full CRUD + contribute — DONE
 
 | | |
 |--|--|
-| **Why** | Goals screen is display-only. The `+` `IconButton` has no `onPress`. Repo has `addGoal` / `listGoals` only — no update saved amount, edit, or delete. |
-| **Files** | [`app/(tabs)/goals.tsx`](app/(tabs)/goals.tsx), [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx), design: [`nocap-design 3/08-goals.html`](nocap-design%203/08-goals.html) |
+| **Status** | Completed (awaiting commit confirmation) |
+| **What changed** | Goals `+` opens add sheet; tap goal to edit; Contribute adds to `saved_cents`; Delete with confirm. Repo: `updateGoal`, `contributeToGoal`, `deleteGoal`. Safer goals sort without `NULLS LAST`. |
+| **Files** | [`app/(tabs)/goals.tsx`](app/(tabs)/goals.tsx), [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx) |
 | **Acceptance criteria** | |
-| | - `+` opens add-goal sheet (name, target, optional due date, icon) |
-| | - Tap goal → edit name/target/due date, or delete with confirm |
-| | - “Contribute” / add-to-saved updates `saved_cents` and progress bar |
-| | - Empty state when no goals (after seed is removed) |
-| | - Repo: `updateGoal`, `deleteGoal` (or equivalent) |
+| | - [x] `+` opens add-goal sheet |
+| | - [x] Tap goal → edit / delete |
+| | - [x] Contribute updates saved amount + progress |
+| | - [x] Empty state when no goals |
+| | - [x] Repo update/delete/contribute |
 
 ---
 
@@ -370,7 +371,7 @@ Use this as a checklist of what **not** to redo:
 P0
 [x] 1. Stop auto-seed / opt-in sample data
 [x] 2. Categories & caps editor + Edit cap
-[ ] 3. Goals CRUD + contribute
+[x] 3. Goals CRUD + contribute
 [ ] 4. Debt CRUD + payments
 
 P1
