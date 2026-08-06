@@ -196,15 +196,13 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 14. Gate Insights chat stub on AI consent
+### 14. Gate Insights chat stub on AI consent — DONE
 
 | | |
 |--|--|
 | **Why** | Chat input is always disabled. Handoff: show/enable only when conversational AI is opted in (still stub OK for v1). |
 | **Files** | [`app/(tabs)/insights.tsx`](app/(tabs)/insights.tsx), settings `aiConsent` |
-| **Acceptance criteria** | |
-| | - If consent off: hide input or show “Enable in Settings” |
-| | - If consent on: show stub with “Coming soon” (still no network) |
+| **Done** | Consent off → “Enable in Settings” link; consent on → coming-soon stub (no network) |
 
 ---
 
@@ -373,7 +371,7 @@ P2
 [x] 11. Insights action links
 [x] 12. History vs design
 [x] 13. Onboarding setup polish
-[ ] 14. AI consent gates chat stub
+[x] 14. AI consent gates chat stub
 [ ] 15. Bottom sheets or drop unused dep
 [ ] 16. Quick-log notes / deep link to Add Expense
 [ ] 17. Accessibility labels

@@ -68,15 +68,27 @@ export default function InsightsScreen() {
           })}
         </View>
 
-        <View style={styles.chatStub}>
-          <MessageCircle size={15} color={colors.textMuted} />
-          <TextInput
-            editable={false}
-            placeholder="Ask about your spending (coming soon)"
-            placeholderTextColor={colors.textMuted}
-            style={styles.chatInput}
-          />
-        </View>
+        {settings?.aiConsent ? (
+          <View style={styles.chatStub}>
+            <MessageCircle size={15} color={colors.textMuted} />
+            <TextInput
+              editable={false}
+              placeholder="Ask about your spending (coming soon)"
+              placeholderTextColor={colors.textMuted}
+              style={styles.chatInput}
+            />
+          </View>
+        ) : (
+          <Pressable
+            onPress={() => router.push('/(tabs)/settings')}
+            style={({ pressed }) => [styles.chatGate, { opacity: pressed ? 0.7 : 1 }]}
+          >
+            <MessageCircle size={15} color={colors.textMuted} />
+            <BodySm style={{ flex: 1, color: colors.textSecondary }}>
+              Enable conversational AI in Settings to unlock chat advice.
+            </BodySm>
+          </Pressable>
+        )}
       </ScrollView>
     </Screen>
   );
@@ -132,6 +144,18 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginTop: 14,
     opacity: 0.7,
+  },
+  chatGate: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 40,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+    borderWidth: 0.5,
+    borderColor: colors.border,
+    borderRadius: 20,
+    marginTop: 14,
   },
   chatInput: {
     flex: 1,
