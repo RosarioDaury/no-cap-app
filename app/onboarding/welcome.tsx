@@ -1,8 +1,9 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Circle } from 'react-native-svg';
 import { Screen, DisplayTitle, BodySm } from '@/src/components';
 import { ButtonPrimary, ButtonGhost } from '@/src/components/Buttons';
+import { useDb } from '@/src/hooks/DbProvider';
 import { colors, typography } from '@/src/theme/theme';
 
 function LogoRings() {
@@ -50,6 +51,29 @@ function LogoRings() {
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { importBackup } = useDb();
+
+  const onImport = () => {
+    Alert.alert(
+      'Import a backup?',
+      'Restores categories, transactions, goals, and debts from a NoCap JSON backup, then opens the app.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Choose file',
+          onPress: () => {
+            importBackup()
+              .catch((err: unknown) => {
+                const message = err instanceof Error ? err.message : 'Invalid or unreadable file.';
+                Alert.alert('Import failed', message);
+              });
+            // On success, RootNavigator routes to tabs once onboardingComplete is set.
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <Screen style={styles.screen} edges={['top', 'bottom']}>
       <View />
@@ -60,7 +84,7 @@ export default function WelcomeScreen() {
       </View>
       <View style={styles.actions}>
         <ButtonPrimary label="Get started" onPress={() => router.push('/onboarding/permissions')} />
-        <ButtonGhost label="Import a backup" onPress={() => {}} />
+        <ButtonGhost label="Import a backup" onPress={onImport} />
       </View>
     </Screen>
   );

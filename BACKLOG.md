@@ -144,17 +144,13 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 9. Local backup export & import
+### 9. Local backup export & import — DONE
 
 | | |
 |--|--|
 | **Why** | Offline-first needs recovery. Welcome “Import a backup” and Settings Export/Import are stubs / Alerts. |
-| **Files** | [`app/onboarding/welcome.tsx`](app/onboarding/welcome.tsx), [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), new: `src/db/backup.ts` (or similar) |
-| **Acceptance criteria** | |
-| | - Export: dump settings + categories + txns + goals + debts to JSON (share sheet / Files) |
-| | - Import: replace or merge with confirm; validate schema version |
-| | - Welcome import path works before or after onboarding (document which) |
-| | - Round-trip: export → wipe → import restores totals |
+| **Files** | [`app/onboarding/welcome.tsx`](app/onboarding/welcome.tsx), [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), [`src/db/backup.ts`](src/db/backup.ts) |
+| **Done** | JSON v1 backup via share sheet; import replaces all data after confirm; Welcome import sets onboarding complete and lands on tabs; schema version validated |
 
 ---
 
@@ -382,7 +378,7 @@ P1
 [x] 6. Cap alerts
 [x] 7. Expense date picker
 [x] 8. Income month filter + spent/net
-[ ] 9. Export / import backup
+[x] 9. Export / import backup
 [ ] 10. Currency + display name settings
 
 P2

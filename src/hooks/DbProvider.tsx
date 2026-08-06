@@ -1,6 +1,10 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { initDatabase } from '@/src/db/database';
 import {
+  exportBackupToShareSheet,
+  pickAndImportBackup,
+} from '@/src/db/backup';
+import {
   addDebt,
   addGoal,
   addTransaction,
@@ -87,6 +91,8 @@ type DbContextValue = {
     type: 'expense' | 'income';
   }) => Promise<void>;
   removeTransaction: (id: string) => Promise<void>;
+  exportBackup: () => Promise<void>;
+  importBackup: () => Promise<'canceled' | 'imported'>;
   setSetting: (partial: Partial<{
     displayName: string;
     currency: string;
@@ -239,6 +245,16 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
       removeTransaction: async (id) => {
         await deleteTransaction(id);
         await refresh();
+      },
+      exportBackup: async () => {
+        await exportBackupToShareSheet();
+      },
+      importBackup: async () => {
+        const result = await pickAndImportBackup();
+        if (result === 'imported') {
+          await refresh();
+        }
+        return result;
       },
       setSetting: async (partial) => {
         await updateSettings(partial);

@@ -19,7 +19,8 @@ import { colors, typography } from '@/src/theme/theme';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { settings, setSetting, loadSampleData, categories } = useDb();
+  const { settings, setSetting, loadSampleData, categories, exportBackup, importBackup } =
+    useDb();
 
   const onLoadSample = () => {
     Alert.alert(
@@ -33,6 +34,39 @@ export default function SettingsScreen() {
             loadSampleData({ force: true }).catch(() => {
               Alert.alert('Could not load samples', 'Try again.');
             });
+          },
+        },
+      ],
+    );
+  };
+
+  const onExport = () => {
+    exportBackup().catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : 'Try again.';
+      Alert.alert('Export failed', message);
+    });
+  };
+
+  const onImport = () => {
+    Alert.alert(
+      'Import backup?',
+      'This replaces all categories, transactions, goals, and debts with the backup file.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Import',
+          style: 'destructive',
+          onPress: () => {
+            importBackup()
+              .then((result) => {
+                if (result === 'imported') {
+                  Alert.alert('Backup restored', 'Your data was replaced from the file.');
+                }
+              })
+              .catch((err: unknown) => {
+                const message = err instanceof Error ? err.message : 'Invalid or unreadable file.';
+                Alert.alert('Import failed', message);
+              });
           },
         },
       ],
@@ -104,12 +138,14 @@ export default function SettingsScreen() {
           <ListRow
             icon={<Download size={16} color={colors.textSecondary} />}
             title="Export backup"
-            onPress={() => Alert.alert('Export', 'Local backup export coming soon.')}
+            subtitle="Share a JSON file of your data"
+            onPress={onExport}
           />
           <ListRow
             icon={<Upload size={16} color={colors.textSecondary} />}
             title="Import backup"
-            onPress={() => Alert.alert('Import', 'Local backup import coming soon.')}
+            subtitle="Replaces all local data"
+            onPress={onImport}
             last
           />
         </View>
