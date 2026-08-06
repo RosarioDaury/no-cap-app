@@ -61,7 +61,19 @@ export default function SettingsScreen() {
             icon={<Bell size={16} color={colors.textSecondary} />}
             title="Cap alerts"
             value={`At ${settings?.capAlertThreshold ?? 80}%`}
-            onPress={() => {}}
+            onPress={() => {
+              Alert.alert(
+                'Cap alerts',
+                'Warn on Home when a category reaches this % of its monthly cap.',
+                [
+                  ...[50, 80, 90, 100].map((pct) => ({
+                    text: `${pct}%${(settings?.capAlertThreshold ?? 80) === pct ? ' ✓' : ''}`,
+                    onPress: () => setSetting({ capAlertThreshold: pct }),
+                  })),
+                  { text: 'Cancel', style: 'cancel' as const },
+                ],
+              );
+            }}
             last
           />
         </View>

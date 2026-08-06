@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { Bell } from 'lucide-react-native';
 import {
   Screen,
   Eyebrow,
@@ -15,6 +16,7 @@ import {
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { formatDisplayDate, formatMoney, progressRatio, tintForProgress } from '@/src/lib/format';
+import { capAlertLevel, categoriesAtAlert } from '@/src/lib/capAlerts';
 import { colors, typography } from '@/src/theme/theme';
 import { CategoryWithSpend } from '@/src/db/types';
 
@@ -27,6 +29,7 @@ export default function HomeDashboard() {
   const { settings, categories, logExpense, refresh } = useDb();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const currency = settings?.currency ?? 'RD$';
+  const threshold = settings?.capAlertThreshold ?? 80;
 
   useFocusEffect(
     useCallback(() => {
@@ -39,6 +42,13 @@ export default function HomeDashboard() {
   const room = Math.max(0, totalCap - totalSpent);
   const overallProgress = progressRatio(totalSpent, totalCap);
 
+  const alertCats = useMemo(
+    () => categoriesAtAlert(categories, threshold),
+    [categories, threshold],
+  );
+  const overCount = alertCats.filter((c) => capAlertLevel(c, threshold) === 'over').length;
+  const warnCount = alertCats.length - overCount;
+
   const toggle = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedId((prev) => (prev === id ? null : id));
@@ -49,6 +59,26 @@ export default function HomeDashboard() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Eyebrow>{formatDisplayDate()}</Eyebrow>
         <DisplayTitle style={{ marginBottom: 14 }}>Hey {settings?.displayName ?? 'there'}</DisplayTitle>
+
+        {alertCats.length > 0 ? (
+          <Card variant="tint" tint={overCount > 0 ? 'coral' : 'gold'} style={styles.alertBanner}>
+            <Bell size={16} color={overCount > 0 ? colors.coral[500] : colors.gold[500]} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.alertTitle}>
+                {overCount > 0
+                  ? `${overCount} categor${overCount === 1 ? 'y is' : 'ies are'} over cap`
+                  : `${warnCount} categor${warnCount === 1 ? 'y' : 'ies'} at ${threshold}%+`}
+              </Text>
+              <BodySm style={{ color: colors.textPrimary }}>
+                {alertCats
+                  .slice(0, 3)
+                  .map((c) => c.name.split(' ')[0])
+                  .join(' · ')}
+                {alertCats.length > 3 ? ` +${alertCats.length - 3}` : ''}
+              </BodySm>
+            </View>
+          </Card>
+        ) : null}
 
         <Card variant="tint" tint="teal" style={styles.roomCard}>
           <CapRing progress={overallProgress} size={58} strokeWidth={3.5} tint="teal" gradient />
@@ -80,6 +110,7 @@ export default function HomeDashboard() {
                 key={cat.id}
                 cat={cat}
                 currency={currency}
+                threshold={threshold}
                 expanded={expandedId === cat.id}
                 onToggle={() => toggle(cat.id)}
                 onOpen={() => router.push(`/category/${cat.id}`)}
@@ -104,6 +135,7 @@ export default function HomeDashboard() {
 function CategoryCapRow({
   cat,
   currency,
+  threshold,
   expanded,
   onToggle,
   onOpen,
@@ -112,6 +144,7 @@ function CategoryCapRow({
 }: {
   cat: CategoryWithSpend;
   currency: string;
+  threshold: number;
   expanded: boolean;
   onToggle: () => void;
   onOpen: () => void;
@@ -120,15 +153,32 @@ function CategoryCapRow({
 }) {
   const progress = progressRatio(cat.spentCents, cat.capCents);
   const tint = tintForProgress(progress, cat.tint);
-  const over = cat.spentCents >= cat.capCents && cat.capCents > 0;
+  const level = capAlertLevel(cat, threshold);
+  const over = level === 'over';
+  const warning = level === 'warning';
 
   return (
-    <Card variant={over ? 'tint' : 'default'} tint="coral" style={{ paddingVertical: 12, paddingHorizontal: 13 }}>
+    <Card
+      variant={over ? 'tint' : warning ? 'tint' : 'default'}
+      tint={over ? 'coral' : 'gold'}
+      style={{ paddingVertical: 12, paddingHorizontal: 13 }}
+    >
       <View style={styles.row}>
         <Pressable onPress={onOpen} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
           <CapRing progress={progress} size={34} tint={tint} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>{cat.name}</Text>
+            <View style={styles.titleRow}>
+              <Text style={styles.rowTitle}>{cat.name}</Text>
+              {over ? (
+                <View style={[styles.badge, styles.badgeOver]}>
+                  <Text style={styles.badgeText}>Over</Text>
+                </View>
+              ) : warning ? (
+                <View style={[styles.badge, styles.badgeWarn]}>
+                  <Text style={styles.badgeText}>{Math.round(progress * 100)}%</Text>
+                </View>
+              ) : null}
+            </View>
             <Text style={styles.rowSub}>
               {formatMoney(cat.spentCents, currency).replace(currency, '')} /{' '}
               {formatMoney(cat.capCents, currency).replace(currency, '')}
@@ -155,6 +205,19 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 24,
   },
+  alertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+    paddingVertical: 12,
+  },
+  alertTitle: {
+    fontFamily: typography.uiSemiBold,
+    fontSize: 13,
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
   roomCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -177,6 +240,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   rowTitle: {
     fontFamily: typography.uiSemiBold,
     fontSize: 13,
@@ -187,5 +255,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textMuted,
     marginTop: 1,
+  },
+  badge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  badgeOver: {
+    backgroundColor: colors.coral[50],
+  },
+  badgeWarn: {
+    backgroundColor: colors.gold[50],
+  },
+  badgeText: {
+    fontFamily: typography.uiBold,
+    fontSize: 10,
+    color: colors.textPrimary,
   },
 });

@@ -102,16 +102,17 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 6. Cap alerts that actually work
+### 6. Cap alerts that actually work — DONE
 
 | | |
 |--|--|
-| **Why** | Settings shows `At {threshold}%` but `onPress` is empty. `cap_alert_threshold` is stored and never used. No local notifications. |
-| **Files** | [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), [`src/db/repositories.ts`](src/db/repositories.ts) / settings, new: notification helper (e.g. `expo-notifications`) |
+| **Status** | Completed (awaiting commit confirmation) |
+| **What changed** | Settings picks 50/80/90/100% threshold. Home shows alert banner + gold/coral row badges when categories hit threshold or go over. In-app only (no push notifications yet). |
+| **Files** | [`src/lib/capAlerts.ts`](src/lib/capAlerts.ts), [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), [`app/(tabs)/index.tsx`](app/(tabs)/index.tsx) |
 | **Acceptance criteria** | |
-| | - User can set threshold (e.g. 50 / 80 / 90 / 100) |
-| | - When a category’s month spend crosses the threshold, user gets an in-app banner and/or local notification |
-| | - Or, if notifications slip, at least an in-app “approaching cap” state on Home rows |
+| | - [x] User can set threshold |
+| | - [x] In-app approaching/over state on Home |
+| | - [x] Banner summarizing alerts |
 
 ---
 
@@ -377,7 +378,7 @@ P0
 
 P1
 [x] 5. Transaction edit & delete
-[ ] 6. Cap alerts
+[x] 6. Cap alerts
 [ ] 7. Expense date picker
 [ ] 8. Income month filter + spent/net
 [ ] 9. Export / import backup
