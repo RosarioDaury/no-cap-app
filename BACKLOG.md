@@ -176,16 +176,13 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 12. History & trends closer to design
+### 12. History & trends closer to design — DONE
 
 | | |
 |--|--|
 | **Why** | Basic monthly bars only. HTML has richer vs-cap / over-under context. Months with zero spend may be missing from the chart. |
 | **Files** | [`app/history.tsx`](app/history.tsx), [`src/db/repositories.ts`](src/db/repositories.ts) (`monthlyExpenseTotals`), design: [`nocap-design 3/10-history-trends.html`](nocap-design%203/10-history-trends.html) |
-| **Acceptance criteria** | |
-| | - Fill empty months in the last N months |
-| | - Show spend vs total caps (or % of budget) where it fits the design |
-| | - Clear over/under labeling |
+| **Done** | Last 6 months filled (incl. zeros); bars by % of total cap; rows show spend/cap with In progress / Over cap / saved |
 
 ---
 
@@ -378,7 +375,7 @@ P1
 
 P2
 [x] 11. Insights action links
-[ ] 12. History vs design
+[x] 12. History vs design
 [ ] 13. Onboarding setup polish
 [ ] 14. AI consent gates chat stub
 [ ] 15. Bottom sheets or drop unused dep
