@@ -207,6 +207,39 @@ export async function addTransaction(input: {
   return id;
 }
 
+export async function updateTransaction(input: {
+  id: string;
+  categoryId?: string | null;
+  amountCents: number;
+  note?: string;
+  date: string;
+  type: 'expense' | 'income';
+}) {
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE transactions SET
+      category_id = ?,
+      amount_cents = ?,
+      note = ?,
+      date = ?,
+      type = ?
+     WHERE id = ?`,
+    [
+      input.categoryId ?? null,
+      input.amountCents,
+      input.note ?? '',
+      input.date,
+      input.type,
+      input.id,
+    ],
+  );
+}
+
+export async function deleteTransaction(id: string) {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM transactions WHERE id = ?', [id]);
+}
+
 export async function listTransactions(opts?: {
   categoryId?: string;
   type?: 'expense' | 'income';

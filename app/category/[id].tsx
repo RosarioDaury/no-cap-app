@@ -10,6 +10,7 @@ import {
   UIManager,
   Modal,
   Alert,
+  Pressable,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
@@ -26,6 +27,7 @@ import {
   SectionTitle,
   ButtonPrimary,
   ButtonSecondary,
+  Chip,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { getCategory, listTransactions } from '@/src/db/repositories';
@@ -43,18 +45,39 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+type TxnRow = Transaction & { categoryName?: string };
+
+type EditDraft = {
+  id: string;
+  amountText: string;
+  note: string;
+  date: string;
+  categoryId: string | null;
+  type: 'expense' | 'income';
+};
+
 export default function CategoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { categories, settings, logExpense, refresh, saveCategory } = useDb();
+  const {
+    categories,
+    settings,
+    logExpense,
+    refresh,
+    saveCategory,
+    saveTransaction,
+    removeTransaction,
+  } = useDb();
   const currency = settings?.currency ?? 'RD$';
   const live = categories.find((c) => c.id === id);
   const [category, setCategory] = useState<Category | null>(null);
-  const [txns, setTxns] = useState<(Transaction & { categoryName?: string })[]>([]);
+  const [txns, setTxns] = useState<TxnRow[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [capModal, setCapModal] = useState(false);
   const [capText, setCapText] = useState('');
   const [savingCap, setSavingCap] = useState(false);
+  const [edit, setEdit] = useState<EditDraft | null>(null);
+  const [savingTxn, setSavingTxn] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -100,6 +123,67 @@ export default function CategoryDetailScreen() {
     } finally {
       setSavingCap(false);
     }
+  };
+
+  const openEditTxn = (t: TxnRow) => {
+    setEdit({
+      id: t.id,
+      amountText: String(t.amountCents / 100),
+      note: t.note,
+      date: t.date,
+      categoryId: t.categoryId,
+      type: t.type,
+    });
+  };
+
+  const onSaveTxn = async () => {
+    if (!edit) return;
+    const amountCents = parseMoneyInput(edit.amountText);
+    if (amountCents <= 0) {
+      Alert.alert('Enter an amount', 'Amount must be greater than zero.');
+      return;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(edit.date.trim())) {
+      Alert.alert('Date', 'Use YYYY-MM-DD.');
+      return;
+    }
+    setSavingTxn(true);
+    try {
+      await saveTransaction({
+        id: edit.id,
+        categoryId: edit.categoryId,
+        amountCents,
+        note: edit.note,
+        date: edit.date.trim(),
+        type: edit.type,
+      });
+      await load();
+      setEdit(null);
+    } catch {
+      Alert.alert('Could not save', 'Try again.');
+    } finally {
+      setSavingTxn(false);
+    }
+  };
+
+  const onDeleteTxn = () => {
+    if (!edit) return;
+    Alert.alert('Delete expense?', 'This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await removeTransaction(edit.id);
+            await load();
+            setEdit(null);
+          } catch {
+            Alert.alert('Delete failed', 'Try again.');
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -156,13 +240,17 @@ export default function CategoryDetailScreen() {
         ) : (
           <View>
             {txns.map((t, i) => (
-              <View key={t.id} style={[styles.txn, i === txns.length - 1 && { borderBottomWidth: 0 }]}>
+              <Pressable
+                key={t.id}
+                onPress={() => openEditTxn(t)}
+                style={[styles.txn, i === txns.length - 1 && { borderBottomWidth: 0 }]}
+              >
                 <View style={{ flex: 1 }}>
                   <Text style={styles.txnTitle}>{t.note || 'Expense'}</Text>
-                  <Text style={styles.txnSub}>{formatShortDate(t.date)}</Text>
+                  <Text style={styles.txnSub}>{formatShortDate(t.date)} · tap to edit</Text>
                 </View>
                 <Text style={styles.txnValue}>{formatMoney(t.amountCents, currency)}</Text>
-              </View>
+              </Pressable>
             ))}
           </View>
         )}
@@ -193,6 +281,72 @@ export default function CategoryDetailScreen() {
               <ButtonPrimary label="Save" loading={savingCap} style={{ flex: 1 }} onPress={saveCap} />
             </View>
           </View>
+        </View>
+      </Modal>
+
+      <Modal visible={!!edit} transparent animationType="slide">
+        <View style={styles.backdrop}>
+          <ScrollView contentContainerStyle={styles.sheetScroll} keyboardShouldPersistTaps="handled">
+            <View style={styles.sheet}>
+              <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Edit expense</DisplayTitle>
+
+              <Text style={styles.label}>Amount</Text>
+              <TextInput
+                value={edit?.amountText ?? ''}
+                onChangeText={(amountText) => setEdit((e) => (e ? { ...e, amountText } : e))}
+                placeholder={`${currency}0`}
+                placeholderTextColor={colors.textMuted}
+                keyboardType="decimal-pad"
+                style={styles.input}
+              />
+
+              <Text style={styles.label}>Note</Text>
+              <TextInput
+                value={edit?.note ?? ''}
+                onChangeText={(note) => setEdit((e) => (e ? { ...e, note } : e))}
+                placeholder="Optional"
+                placeholderTextColor={colors.textMuted}
+                style={styles.input}
+              />
+
+              <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
+              <TextInput
+                value={edit?.date ?? ''}
+                onChangeText={(date) => setEdit((e) => (e ? { ...e, date } : e))}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textMuted}
+                autoCapitalize="none"
+                style={styles.input}
+              />
+
+              <Text style={styles.label}>Category</Text>
+              <View style={styles.chips}>
+                {categories.map((c) => (
+                  <Chip
+                    key={c.id}
+                    label={c.name.split(' ')[0]}
+                    selected={edit?.categoryId === c.id}
+                    onPress={() => setEdit((e) => (e ? { ...e, categoryId: c.id } : e))}
+                  />
+                ))}
+              </View>
+
+              <View style={styles.actions}>
+                <ButtonSecondary label="Delete" style={{ flex: 1 }} onPress={onDeleteTxn} />
+                <ButtonPrimary
+                  label="Save"
+                  loading={savingTxn}
+                  style={{ flex: 1 }}
+                  onPress={onSaveTxn}
+                />
+              </View>
+              <ButtonSecondary
+                label="Cancel"
+                style={{ marginTop: 8 }}
+                onPress={() => setEdit(null)}
+              />
+            </View>
+          </ScrollView>
         </View>
       </Modal>
     </Screen>
@@ -253,6 +407,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'flex-end',
   },
+  sheetScroll: { flexGrow: 1, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.surface,
     borderTopLeftRadius: 20,
@@ -261,6 +416,15 @@ const styles = StyleSheet.create({
     paddingBottom: 36,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  label: {
+    fontFamily: typography.uiBold,
+    fontSize: 11,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
+    marginBottom: 6,
+    marginTop: 4,
   },
   input: {
     height: 42,
@@ -272,6 +436,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     fontFamily: typography.ui,
     fontSize: 13,
+    marginBottom: 10,
+  },
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
     marginBottom: 14,
   },
   actions: {

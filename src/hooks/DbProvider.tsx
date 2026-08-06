@@ -9,6 +9,7 @@ import {
   deleteCategory,
   deleteDebt,
   deleteGoal,
+  deleteTransaction,
   getCategoriesWithSpend,
   getSettings,
   listDebts,
@@ -20,6 +21,7 @@ import {
   updateDebt,
   updateGoal,
   updateSettings,
+  updateTransaction,
   upsertCategory,
 } from '@/src/db/repositories';
 import { AppSettings, CategoryWithSpend, Debt, Goal, TintName } from '@/src/db/types';
@@ -76,6 +78,15 @@ type DbContextValue = {
   saveDebt: (input: DebtInput) => Promise<string>;
   removeDebt: (id: string) => Promise<void>;
   payDebt: (id: string, amountCents: number) => Promise<void>;
+  saveTransaction: (input: {
+    id: string;
+    categoryId?: string | null;
+    amountCents: number;
+    note?: string;
+    date: string;
+    type: 'expense' | 'income';
+  }) => Promise<void>;
+  removeTransaction: (id: string) => Promise<void>;
   setSetting: (partial: Partial<{
     displayName: string;
     currency: string;
@@ -219,6 +230,14 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
       },
       payDebt: async (id, amountCents) => {
         await logDebtPayment(id, amountCents);
+        await refresh();
+      },
+      saveTransaction: async (input) => {
+        await updateTransaction(input);
+        await refresh();
+      },
+      removeTransaction: async (id) => {
+        await deleteTransaction(id);
         await refresh();
       },
       setSetting: async (partial) => {

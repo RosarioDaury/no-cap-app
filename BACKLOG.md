@@ -87,17 +87,18 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ## P1 — High priority
 
-### 5. Transaction edit & delete
+### 5. Transaction edit & delete — DONE
 
 | | |
 |--|--|
-| **Why** | Mistakes cannot be fixed. Only `addTransaction` exists. Category detail and Income list are read-only after create. |
-| **Files** | [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx), [`app/category/[id].tsx`](app/category/[id].tsx), [`app/income.tsx`](app/income.tsx), optionally Home |
+| **Status** | Completed (awaiting commit confirmation) |
+| **What changed** | `updateTransaction` / `deleteTransaction`; tap expense on category detail or income row to edit amount/note/date (and category for expenses) or delete with confirm. Income “This month” total now filters by calendar month. |
+| **Files** | [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx), [`app/category/[id].tsx`](app/category/[id].tsx), [`app/income.tsx`](app/income.tsx) |
 | **Acceptance criteria** | |
-| | - `updateTransaction` / `deleteTransaction` in repo + provider |
-| | - Tap a txn → edit amount/note/date/category (expenses) or delete |
-| | - Spending rings and totals update after edit/delete |
-| | - Confirm before delete |
+| | - [x] update/delete in repo + provider |
+| | - [x] Tap txn → edit / delete |
+| | - [x] Rings/totals refresh after change |
+| | - [x] Confirm before delete |
 
 ---
 
@@ -375,7 +376,7 @@ P0
 [x] 4. Debt CRUD + payments
 
 P1
-[ ] 5. Transaction edit & delete
+[x] 5. Transaction edit & delete
 [ ] 6. Cap alerts
 [ ] 7. Expense date picker
 [ ] 8. Income month filter + spent/net

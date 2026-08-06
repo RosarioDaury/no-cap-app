@@ -1,5 +1,14 @@
-import { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView } from 'react-native';
+import { useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Modal,
+  Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import {
@@ -8,22 +17,99 @@ import {
   BodySm,
   Card,
   ButtonPrimary,
+  ButtonSecondary,
   IconButton,
   EmptyState,
   SectionTitle,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
+import { Transaction } from '@/src/db/types';
 import { formatMoney, formatShortDate, parseMoneyInput } from '@/src/lib/format';
 import { colors, typography } from '@/src/theme/theme';
 
+type TxnRow = Transaction & { categoryName?: string };
+
+type EditDraft = {
+  id: string;
+  amountText: string;
+  note: string;
+  date: string;
+};
+
 export default function IncomeScreen() {
   const router = useRouter();
-  const { incomeTransactions, settings, logIncome } = useDb();
+  const { incomeTransactions, settings, logIncome, saveTransaction, removeTransaction } = useDb();
   const currency = settings?.currency ?? 'RD$';
   const [raw, setRaw] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
-  const total = incomeTransactions.reduce((s, t) => s + t.amountCents, 0);
+  const [edit, setEdit] = useState<EditDraft | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const monthPrefix = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }, []);
+
+  const monthIncome = incomeTransactions.filter((t) => t.date.startsWith(monthPrefix));
+  const total = monthIncome.reduce((s, t) => s + t.amountCents, 0);
+
+  const openEdit = (t: TxnRow) => {
+    setEdit({
+      id: t.id,
+      amountText: String(t.amountCents / 100),
+      note: t.note,
+      date: t.date,
+    });
+  };
+
+  const onSaveEdit = async () => {
+    if (!edit) return;
+    const amountCents = parseMoneyInput(edit.amountText);
+    if (amountCents <= 0) {
+      Alert.alert('Enter an amount', 'Amount must be greater than zero.');
+      return;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(edit.date.trim())) {
+      Alert.alert('Date', 'Use YYYY-MM-DD.');
+      return;
+    }
+    setSaving(true);
+    try {
+      await saveTransaction({
+        id: edit.id,
+        categoryId: null,
+        amountCents,
+        note: edit.note,
+        date: edit.date.trim(),
+        type: 'income',
+      });
+      setEdit(null);
+    } catch {
+      Alert.alert('Could not save', 'Try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onDelete = () => {
+    if (!edit) return;
+    Alert.alert('Delete income?', 'This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await removeTransaction(edit.id);
+            setEdit(null);
+          } catch {
+            Alert.alert('Delete failed', 'Try again.');
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <Screen edges={['top']} padded={false}>
@@ -81,19 +167,63 @@ export default function IncomeScreen() {
           <EmptyState title="No income logged" message="Add a paycheck or other inflow above." />
         ) : (
           incomeTransactions.map((t, i) => (
-            <View
+            <Pressable
               key={t.id}
+              onPress={() => openEdit(t)}
               style={[styles.row, i === incomeTransactions.length - 1 && { borderBottomWidth: 0 }]}
             >
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle}>{t.note || 'Income'}</Text>
-                <Text style={styles.rowSub}>{formatShortDate(t.date)}</Text>
+                <Text style={styles.rowSub}>{formatShortDate(t.date)} · tap to edit</Text>
               </View>
               <Text style={styles.value}>{formatMoney(t.amountCents, currency)}</Text>
-            </View>
+            </Pressable>
           ))
         )}
       </ScrollView>
+
+      <Modal visible={!!edit} transparent animationType="slide">
+        <View style={styles.backdrop}>
+          <View style={styles.sheet}>
+            <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Edit income</DisplayTitle>
+            <Text style={styles.fieldLabel}>Amount</Text>
+            <TextInput
+              value={edit?.amountText ?? ''}
+              onChangeText={(amountText) => setEdit((e) => (e ? { ...e, amountText } : e))}
+              placeholder={`${currency}0`}
+              placeholderTextColor={colors.textMuted}
+              keyboardType="decimal-pad"
+              style={styles.input}
+            />
+            <Text style={styles.fieldLabel}>Note</Text>
+            <TextInput
+              value={edit?.note ?? ''}
+              onChangeText={(n) => setEdit((e) => (e ? { ...e, note: n } : e))}
+              placeholder="Optional"
+              placeholderTextColor={colors.textMuted}
+              style={styles.input}
+            />
+            <Text style={styles.fieldLabel}>Date (YYYY-MM-DD)</Text>
+            <TextInput
+              value={edit?.date ?? ''}
+              onChangeText={(date) => setEdit((e) => (e ? { ...e, date } : e))}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={colors.textMuted}
+              autoCapitalize="none"
+              style={styles.input}
+            />
+            <View style={styles.actions}>
+              <ButtonSecondary label="Delete" style={{ flex: 1 }} onPress={onDelete} />
+              <ButtonPrimary label="Save" loading={saving} style={{ flex: 1 }} onPress={onSaveEdit} />
+            </View>
+            <ButtonSecondary
+              label="Cancel"
+              style={{ marginTop: 8 }}
+              onPress={() => setEdit(null)}
+            />
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -153,5 +283,31 @@ const styles = StyleSheet.create({
     fontFamily: typography.display,
     fontSize: 13,
     color: colors.teal[300],
+  },
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 36,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  fieldLabel: {
+    fontFamily: typography.uiBold,
+    fontSize: 11,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
+    marginBottom: 6,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 8,
   },
 });
