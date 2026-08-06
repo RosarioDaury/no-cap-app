@@ -1,4 +1,14 @@
-import { View, Text, StyleSheet, ScrollView, Alert, Switch } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Switch,
+  Modal,
+  TextInput,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   DollarSign,
@@ -12,15 +22,32 @@ import {
   TrendingUp,
   Wallet,
   FlaskConical,
+  User,
 } from 'lucide-react-native';
 import { Screen, DisplayTitle, Eyebrow, ListRow } from '@/src/components';
+import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
 import { useDb } from '@/src/hooks/DbProvider';
 import { colors, typography } from '@/src/theme/theme';
+
+const CURRENCY_OPTIONS = [
+  { code: 'RD$', label: 'Dominican peso (RD$)' },
+  { code: 'USD', label: 'US dollar (USD)' },
+] as const;
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { settings, setSetting, loadSampleData, categories, exportBackup, importBackup } =
     useDb();
+
+  const [nameModal, setNameModal] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const [savingName, setSavingName] = useState(false);
+
+  useEffect(() => {
+    if (nameModal) {
+      setNameDraft(settings?.displayName ?? '');
+    }
+  }, [nameModal, settings?.displayName]);
 
   const onLoadSample = () => {
     Alert.alert(
@@ -73,6 +100,34 @@ export default function SettingsScreen() {
     );
   };
 
+  const onPickCurrency = () => {
+    const current = settings?.currency ?? 'RD$';
+    Alert.alert('Currency', 'Used for all amounts in the app.', [
+      ...CURRENCY_OPTIONS.map((opt) => ({
+        text: `${opt.label}${current === opt.code ? ' ✓' : ''}`,
+        onPress: () => setSetting({ currency: opt.code }),
+      })),
+      { text: 'Cancel', style: 'cancel' as const },
+    ]);
+  };
+
+  const onSaveName = async () => {
+    const trimmed = nameDraft.trim();
+    if (!trimmed) {
+      Alert.alert('Name required', 'Enter a display name for the Home greeting.');
+      return;
+    }
+    setSavingName(true);
+    try {
+      await setSetting({ displayName: trimmed });
+      setNameModal(false);
+    } catch {
+      Alert.alert('Could not save', 'Try again.');
+    } finally {
+      setSavingName(false);
+    }
+  };
+
   return (
     <Screen edges={['top']} padded={false}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -81,10 +136,16 @@ export default function SettingsScreen() {
         <Eyebrow>Budget</Eyebrow>
         <View style={{ marginBottom: 16 }}>
           <ListRow
+            icon={<User size={16} color={colors.textSecondary} />}
+            title="Display name"
+            value={settings?.displayName ?? 'Alex'}
+            onPress={() => setNameModal(true)}
+          />
+          <ListRow
             icon={<DollarSign size={16} color={colors.textSecondary} />}
             title="Currency"
-            value={`${settings?.currency ?? 'RD$'} / USD`}
-            onPress={() => Alert.alert('Currency', 'RD$ is the default for v1.')}
+            value={settings?.currency ?? 'RD$'}
+            onPress={onPickCurrency}
           />
           <ListRow
             icon={<LayoutGrid size={16} color={colors.textSecondary} />}
@@ -186,6 +247,37 @@ export default function SettingsScreen() {
           />
         </View>
       </ScrollView>
+
+      <Modal visible={nameModal} transparent animationType="slide">
+        <View style={styles.backdrop}>
+          <View style={styles.sheet}>
+            <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Display name</DisplayTitle>
+            <Text style={styles.label}>Name</Text>
+            <TextInput
+              value={nameDraft}
+              onChangeText={setNameDraft}
+              placeholder="e.g. Alex"
+              placeholderTextColor={colors.textMuted}
+              autoFocus
+              autoCapitalize="words"
+              style={styles.input}
+            />
+            <View style={styles.actions}>
+              <ButtonSecondary
+                label="Cancel"
+                style={{ flex: 1 }}
+                onPress={() => setNameModal(false)}
+              />
+              <ButtonPrimary
+                label="Save"
+                loading={savingName}
+                style={{ flex: 1 }}
+                onPress={onSaveName}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -209,5 +301,44 @@ const styles = StyleSheet.create({
     fontFamily: typography.uiSemiBold,
     fontSize: 13,
     color: colors.textPrimary,
+  },
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 36,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  label: {
+    fontFamily: typography.uiBold,
+    fontSize: 11,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
+    marginBottom: 6,
+    marginTop: 4,
+  },
+  input: {
+    height: 42,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+    color: colors.textPrimary,
+    paddingHorizontal: 12,
+    fontFamily: typography.ui,
+    fontSize: 13,
+    marginBottom: 16,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
   },
 });

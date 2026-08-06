@@ -154,16 +154,13 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 10. Currency & display-name settings
+### 10. Currency & display-name settings — DONE
 
 | | |
 |--|--|
 | **Why** | Currency only shows an Alert. Display name is hardcoded to `"Alex"` with no UI to change it (Home greets by name). |
-| **Files** | [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx) (`setSetting` already supports these fields) |
-| **Acceptance criteria** | |
-| | - Edit display name → Home greeting updates |
-| | - Choose currency symbol/code (at least RD$ / USD; formatMoney uses it everywhere) |
-| | - Persist via `updateSettings` |
+| **Files** | [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx) (`setSetting` already supported these fields) |
+| **Done** | Display name editor (sheet) updates Home greeting; currency picker RD$ / USD; persisted via `updateSettings` |
 
 ---
 
@@ -379,7 +376,7 @@ P1
 [x] 7. Expense date picker
 [x] 8. Income month filter + spent/net
 [x] 9. Export / import backup
-[ ] 10. Currency + display name settings
+[x] 10. Currency + display name settings
 
 P2
 [ ] 11. Insights action links
