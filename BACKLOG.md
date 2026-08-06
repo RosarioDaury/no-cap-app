@@ -166,15 +166,13 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ## P2 — Medium
 
-### 11. Wire Insights card actions
+### 11. Wire Insights card actions — DONE
 
 | | |
 |--|--|
 | **Why** | Lines like “Adjust cap · Set a mid-month alert”, “Move to Emergency fund”, “See payoff plan” are non-interactive text. |
 | **Files** | [`app/(tabs)/insights.tsx`](app/(tabs)/insights.tsx), [`src/lib/insights.ts`](src/lib/insights.ts) |
-| **Acceptance criteria** | |
-| | - Actions navigate to the right screen (category edit, goals, debt) or open a sheet |
-| | - Insights model includes actionable `href` / action ids, not just copy |
+| **Done** | Cards expose `actions[]` with `href`; taps go to category, Settings (cap alerts), Goals, Debt, or Add Expense |
 
 ---
 
@@ -379,7 +377,7 @@ P1
 [x] 10. Currency + display name settings
 
 P2
-[ ] 11. Insights action links
+[x] 11. Insights action links
 [ ] 12. History vs design
 [ ] 13. Onboarding setup polish
 [ ] 14. AI consent gates chat stub

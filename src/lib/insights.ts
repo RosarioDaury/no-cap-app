@@ -1,12 +1,18 @@
 import { CategoryWithSpend, Debt } from '@/src/db/types';
 import { formatMoney } from '@/src/lib/format';
 
+export type InsightAction = {
+  id: string;
+  label: string;
+  href: string;
+};
+
 export type InsightCard = {
   id: string;
   tone: 'coral' | 'teal' | 'gold' | 'plum';
   eyebrow: string;
   body: string;
-  action: string;
+  actions: InsightAction[];
 };
 
 export function buildInsights(
@@ -30,7 +36,10 @@ export function buildInsights(
         tone: 'coral',
         eyebrow: 'Projected overspend',
         body: `${cat.name} is on pace to close ~${formatMoney(Math.round(overBy), currency)} over cap, based on your pace so far this month.`,
-        action: 'Adjust cap · Set a mid-month alert',
+        actions: [
+          { id: 'adjust-cap', label: 'Adjust cap', href: `/category/${cat.id}` },
+          { id: 'cap-alerts', label: 'Cap alerts', href: '/(tabs)/settings' },
+        ],
       });
     } else if (cat.spentCents < cat.capCents * 0.55 && pace > 0.4) {
       cards.push({
@@ -38,7 +47,7 @@ export function buildInsights(
         tone: 'teal',
         eyebrow: 'Consistent room',
         body: `${cat.name} is tracking under cap — you have about ${formatMoney(cat.capCents - cat.spentCents, currency)} of room left.`,
-        action: 'Move to Emergency fund',
+        actions: [{ id: 'goals', label: 'Move to a goal', href: '/(tabs)/goals' }],
       });
     }
   }
@@ -53,7 +62,7 @@ export function buildInsights(
       tone: 'gold',
       eyebrow: 'Debt payoff',
       body: `At ${formatMoney(debt.paymentCents, currency)}/month, ${debt.name.toLowerCase()} clears in ${months} months. Adding ${formatMoney(100000, currency)} cuts that to ${faster}.`,
-      action: 'See payoff plan',
+      actions: [{ id: 'payoff', label: 'See payoff plan', href: '/debt' }],
     });
   }
 
@@ -63,7 +72,7 @@ export function buildInsights(
       tone: 'plum',
       eyebrow: 'Getting started',
       body: 'Log a few expenses and set caps — pattern insights show up once there is enough local data.',
-      action: 'Log a spend',
+      actions: [{ id: 'log', label: 'Log a spend', href: '/add-expense' }],
     });
   }
 

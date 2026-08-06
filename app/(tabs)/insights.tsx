@@ -1,4 +1,5 @@
-import { View, Text, TextInput, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Pressable, TextInput, StyleSheet, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Sparkles, MessageCircle } from 'lucide-react-native';
 import { Screen, Card, BodySm, DisplayTitle } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
@@ -13,6 +14,7 @@ const toneMap: Record<string, TintName> = {
 };
 
 export default function InsightsScreen() {
+  const router = useRouter();
   const { categories, debts, settings } = useDb();
   const currency = settings?.currency ?? 'RD$';
   const cards = buildInsights(categories, debts, currency);
@@ -38,13 +40,29 @@ export default function InsightsScreen() {
                   borderBottomLeftRadius: 0,
                 }}
               >
-                <Text style={[styles.eyebrow, { color: tintPalette[tint][card.tone === 'teal' ? 700 : 500] }]}>
+                <Text
+                  style={[
+                    styles.eyebrow,
+                    { color: tintPalette[tint][card.tone === 'teal' ? 700 : 500] },
+                  ]}
+                >
                   {card.eyebrow}
                 </Text>
-                <BodySm style={{ color: colors.textPrimary, marginBottom: 6 }}>{card.body}</BodySm>
-                <BodySm style={{ color: colors.plum[500], fontFamily: typography.uiSemiBold }}>
-                  {card.action}
-                </BodySm>
+                <BodySm style={{ color: colors.textPrimary, marginBottom: 8 }}>{card.body}</BodySm>
+                <View style={styles.actions}>
+                  {card.actions.map((action, index) => (
+                    <View key={action.id} style={styles.actionItem}>
+                      {index > 0 ? <Text style={styles.actionSep}>·</Text> : null}
+                      <Pressable
+                        onPress={() => router.push(action.href as never)}
+                        hitSlop={8}
+                        style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+                      >
+                        <BodySm style={styles.actionLabel}>{action.label}</BodySm>
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
               </Card>
             );
           })}
@@ -83,6 +101,25 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 4,
+  },
+  actions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionSep: {
+    color: colors.plum[500],
+    marginHorizontal: 6,
+    fontFamily: typography.uiSemiBold,
+    fontSize: 13,
+  },
+  actionLabel: {
+    color: colors.plum[500],
+    fontFamily: typography.uiSemiBold,
   },
   chatStub: {
     flexDirection: 'row',
