@@ -13,7 +13,7 @@ export default function TemplatesScreen() {
 
   return (
     <Screen edges={['top', 'bottom']} style={{ paddingTop: 20 }}>
-      <Eyebrow>Step 1 of 3</Eyebrow>
+      <Eyebrow>Step 2 of 3</Eyebrow>
       <DisplayTitle style={{ fontSize: 21, marginBottom: 6 }}>Choose a starting method</DisplayTitle>
       <BodySm style={{ marginBottom: 18 }}>We&apos;ll pre-fill your caps — fine-tune every number after.</BodySm>
 

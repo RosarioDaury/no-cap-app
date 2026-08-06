@@ -186,17 +186,13 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 13. Onboarding budget-setup polish
+### 13. Onboarding budget-setup polish — DONE
 
 | | |
 |--|--|
 | **Why** | Add category only asks for a name (default icon/tint). No remove. Design allows “ranged cap” (e.g. 10k–15k) which is unsupported. |
-| **Files** | [`app/onboarding/budget-setup.tsx`](app/onboarding/budget-setup.tsx), [`src/db/types.ts`](src/db/types.ts) if schema needs min/max cap |
-| **Acceptance criteria** | |
-| | - Pick icon + tint when adding a category |
-| | - Remove a category row before continuing |
-| | - Decide: implement ranged caps **or** drop from design and keep single cap (document choice) |
-| | - Step labels consistent (permissions “1 of 4” vs templates “1 of 3”) |
+| **Files** | [`app/onboarding/budget-setup.tsx`](app/onboarding/budget-setup.tsx), permissions/templates step labels |
+| **Done** | Icon + tint when adding; remove row; keep single monthly cap (no ranged caps in v1); steps are 1–3 of 3 |
 
 ---
 
@@ -376,7 +372,7 @@ P1
 P2
 [x] 11. Insights action links
 [x] 12. History vs design
-[ ] 13. Onboarding setup polish
+[x] 13. Onboarding setup polish
 [ ] 14. AI consent gates chat stub
 [ ] 15. Bottom sheets or drop unused dep
 [ ] 16. Quick-log notes / deep link to Add Expense

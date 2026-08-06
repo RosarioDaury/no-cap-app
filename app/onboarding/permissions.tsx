@@ -12,7 +12,7 @@ export default function PermissionsScreen() {
 
   return (
     <Screen edges={['top', 'bottom']} style={{ paddingTop: 20 }}>
-      <Eyebrow>Step 1 of 4</Eyebrow>
+      <Eyebrow>Step 1 of 3</Eyebrow>
       <DisplayTitle style={{ fontSize: 21, marginBottom: 6 }}>Your data, your call</DisplayTitle>
       <BodySm style={{ marginBottom: 22 }}>
         NoCap stores everything on this device only. Nothing leaves your phone unless you turn this on.

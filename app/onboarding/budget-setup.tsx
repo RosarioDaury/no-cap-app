@@ -1,14 +1,19 @@
 import { useMemo, useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Modal, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Plus } from 'lucide-react-native';
+import { Plus, Trash2 } from 'lucide-react-native';
 import { Screen, Eyebrow, DisplayTitle, BodySm, Card, RowIcon } from '@/src/components';
 import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
-import { CategoryIcon, iconBg } from '@/src/components/CategoryIcon';
+import {
+  CategoryIcon,
+  CATEGORY_ICON_OPTIONS,
+  CATEGORY_TINT_OPTIONS,
+  iconBg,
+} from '@/src/components/CategoryIcon';
 import { useOnboarding } from '@/src/hooks/OnboardingContext';
 import { useDb } from '@/src/hooks/DbProvider';
 import { BUDGET_TEMPLATES } from '@/src/db/database';
-import { colors, typography, TintName } from '@/src/theme/theme';
+import { colors, typography, TintName, tintPalette } from '@/src/theme/theme';
 import { parseMoneyInput } from '@/src/lib/format';
 
 type DraftCat = {
@@ -17,6 +22,14 @@ type DraftCat = {
   tint: TintName;
   capText: string;
 };
+
+type AddDraft = {
+  name: string;
+  icon: string;
+  tint: TintName;
+};
+
+const emptyAdd = (): AddDraft => ({ name: '', icon: 'heart', tint: 'teal' });
 
 export default function BudgetSetupScreen() {
   const router = useRouter();
@@ -33,10 +46,13 @@ export default function BudgetSetupScreen() {
     })),
   );
   const [modalOpen, setModalOpen] = useState(false);
-  const [newName, setNewName] = useState('');
+  const [addDraft, setAddDraft] = useState<AddDraft>(emptyAdd());
   const [loading, setLoading] = useState(false);
 
-  const canContinue = useMemo(() => cats.some((c) => parseMoneyInput(c.capText) > 0), [cats]);
+  const canContinue = useMemo(
+    () => cats.length > 0 && cats.some((c) => parseMoneyInput(c.capText) > 0),
+    [cats],
+  );
 
   const onContinue = async () => {
     setLoading(true);
@@ -60,9 +76,11 @@ export default function BudgetSetupScreen() {
   return (
     <Screen edges={['top', 'bottom']} style={{ paddingTop: 20 }} padded={false}>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, flexGrow: 1 }}>
-        <Eyebrow>Step 2 of 4</Eyebrow>
+        <Eyebrow>Step 3 of 3</Eyebrow>
         <DisplayTitle style={{ fontSize: 21, marginBottom: 6 }}>Set your caps</DisplayTitle>
-        <BodySm style={{ marginBottom: 18 }}>Add a category and how much it can take each month.</BodySm>
+        <BodySm style={{ marginBottom: 18 }}>
+          Add a category and a monthly cap. One amount per category — ranged caps are not used in v1.
+        </BodySm>
 
         <View style={{ gap: 9 }}>
           {cats.map((c, idx) => (
@@ -83,10 +101,23 @@ export default function BudgetSetupScreen() {
                 keyboardType="number-pad"
                 style={styles.capInput}
               />
+              <Pressable
+                onPress={() => setCats((prev) => prev.filter((_, i) => i !== idx))}
+                hitSlop={8}
+                accessibilityLabel={`Remove ${c.name}`}
+              >
+                <Trash2 size={15} color={colors.textMuted} />
+              </Pressable>
             </Card>
           ))}
 
-          <Pressable onPress={() => setModalOpen(true)} style={styles.addBtn}>
+          <Pressable
+            onPress={() => {
+              setAddDraft(emptyAdd());
+              setModalOpen(true);
+            }}
+            style={styles.addBtn}
+          >
             <Plus size={16} color={colors.textSecondary} />
             <Text style={styles.addText}>Add category</Text>
           </Pressable>
@@ -106,19 +137,54 @@ export default function BudgetSetupScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalSheet}>
             <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Add category</DisplayTitle>
+
+            <Text style={styles.label}>Name</Text>
             <TextInput
-              value={newName}
-              onChangeText={setNewName}
+              value={addDraft.name}
+              onChangeText={(name) => setAddDraft((d) => ({ ...d, name }))}
               placeholder="Category name"
               placeholderTextColor={colors.textMuted}
               style={styles.modalInput}
             />
+
+            <Text style={styles.label}>Icon</Text>
+            <View style={styles.chipRow}>
+              {CATEGORY_ICON_OPTIONS.map((icon) => (
+                <Pressable
+                  key={icon}
+                  onPress={() => setAddDraft((d) => ({ ...d, icon }))}
+                  style={[
+                    styles.iconChip,
+                    addDraft.icon === icon && styles.iconChipActive,
+                    { backgroundColor: iconBg(addDraft.tint) },
+                  ]}
+                >
+                  <CategoryIcon name={icon} tint={addDraft.tint} />
+                </Pressable>
+              ))}
+            </View>
+
+            <Text style={styles.label}>Color</Text>
+            <View style={styles.chipRow}>
+              {CATEGORY_TINT_OPTIONS.map((tint) => (
+                <Pressable
+                  key={tint}
+                  onPress={() => setAddDraft((d) => ({ ...d, tint }))}
+                  style={[
+                    styles.tintChip,
+                    { backgroundColor: tintPalette[tint][500] },
+                    addDraft.tint === tint && styles.tintChipActive,
+                  ]}
+                />
+              ))}
+            </View>
+
             <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
               <ButtonSecondary
                 label="Cancel"
                 onPress={() => {
                   setModalOpen(false);
-                  setNewName('');
+                  setAddDraft(emptyAdd());
                 }}
                 style={{ flex: 1 }}
               />
@@ -126,12 +192,17 @@ export default function BudgetSetupScreen() {
                 label="Add"
                 style={{ flex: 1 }}
                 onPress={() => {
-                  if (!newName.trim()) return;
+                  if (!addDraft.name.trim()) return;
                   setCats((prev) => [
                     ...prev,
-                    { name: newName.trim(), icon: 'heart', tint: 'teal', capText: '' },
+                    {
+                      name: addDraft.name.trim(),
+                      icon: addDraft.icon,
+                      tint: addDraft.tint,
+                      capText: '',
+                    },
                   ]);
-                  setNewName('');
+                  setAddDraft(emptyAdd());
                   setModalOpen(false);
                 }}
               />
@@ -147,7 +218,7 @@ const styles = StyleSheet.create({
   catRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     paddingVertical: 11,
     paddingHorizontal: 13,
   },
@@ -200,6 +271,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  label: {
+    fontFamily: typography.uiBold,
+    fontSize: 11,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
+    marginBottom: 6,
+    marginTop: 4,
+  },
   modalInput: {
     height: 44,
     borderRadius: 12,
@@ -209,5 +289,32 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     paddingHorizontal: 12,
     fontFamily: typography.ui,
+    marginBottom: 10,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  iconChip: {
+    width: 36,
+    height: 36,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconChipActive: {
+    borderWidth: 2,
+    borderColor: colors.textPrimary,
+  },
+  tintChip: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+  },
+  tintChipActive: {
+    borderWidth: 2,
+    borderColor: colors.textPrimary,
   },
 });
