@@ -69,19 +69,19 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 4. Debt tracker — full CRUD + payments
+### 4. Debt tracker — full CRUD + payments — DONE
 
 | | |
 |--|--|
-| **Why** | Debt screen is seed-only. HTML has a `+` button; RN has no add/edit/payment flow. Progress bar uses a meaningless proxy (`1/months`), not real payoff progress. |
-| **Files** | [`app/debt.tsx`](app/debt.tsx), [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx), design: [`nocap-design 3/09-debt-tracker.html`](nocap-design%203/09-debt-tracker.html) |
+| **Status** | Completed (awaiting commit confirmation) |
+| **What changed** | Add/edit/delete debts; log payment reduces balance; `original_balance_cents` for real % paid; total remaining summary + tip. |
+| **Files** | [`app/debt.tsx`](app/debt.tsx), [`src/db/database.ts`](src/db/database.ts), [`src/db/types.ts`](src/db/types.ts), [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx) |
 | **Acceptance criteria** | |
-| | - Add debt (name, balance, monthly payment, optional APR / due date if modeled) |
-| | - Edit balance / payment; log a payment that reduces balance |
-| | - Delete debt with confirm |
-| | - Total debt remaining summary matching design |
-| | - Progress = paid-off portion vs original (store `original_balance` or track payments) |
-| | - Repo: `updateDebt`, `deleteDebt`, payment helper |
+| | - [x] Add / edit / delete debt |
+| | - [x] Log payment reduces balance |
+| | - [x] Total remaining summary |
+| | - [x] Progress from original vs remaining |
+| | - [x] Repo update/delete/payment helpers |
 
 ---
 
@@ -372,7 +372,7 @@ P0
 [x] 1. Stop auto-seed / opt-in sample data
 [x] 2. Categories & caps editor + Edit cap
 [x] 3. Goals CRUD + contribute
-[ ] 4. Debt CRUD + payments
+[x] 4. Debt CRUD + payments
 
 P1
 [ ] 5. Transaction edit & delete

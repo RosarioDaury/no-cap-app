@@ -57,12 +57,23 @@ export async function initDatabase() {
       id TEXT PRIMARY KEY NOT NULL,
       name TEXT NOT NULL,
       balance_cents INTEGER NOT NULL,
+      original_balance_cents INTEGER NOT NULL DEFAULT 0,
       payment_cents INTEGER NOT NULL DEFAULT 0,
       due_date TEXT
     );
 
     INSERT OR IGNORE INTO settings (id) VALUES (1);
   `);
+
+  // Migrate older DBs that lack original_balance_cents
+  const debtCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(debts)');
+  if (!debtCols.some((c) => c.name === 'original_balance_cents')) {
+    await db.execAsync(
+      `ALTER TABLE debts ADD COLUMN original_balance_cents INTEGER NOT NULL DEFAULT 0;
+       UPDATE debts SET original_balance_cents = balance_cents WHERE original_balance_cents = 0;`,
+    );
+  }
+
   return db;
 }
 

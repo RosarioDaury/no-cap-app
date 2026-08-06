@@ -1,11 +1,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { initDatabase } from '@/src/db/database';
 import {
+  addDebt,
   addGoal,
   addTransaction,
   completeOnboarding,
   contributeToGoal,
   deleteCategory,
+  deleteDebt,
   deleteGoal,
   getCategoriesWithSpend,
   getSettings,
@@ -13,7 +15,9 @@ import {
   listGoals,
   listTransactions,
   loadSampleData as seedSampleData,
+  logDebtPayment,
   monthlyExpenseTotals,
+  updateDebt,
   updateGoal,
   updateSettings,
   upsertCategory,
@@ -26,6 +30,15 @@ type GoalInput = {
   icon: string;
   targetCents: number;
   savedCents?: number;
+  dueDate?: string | null;
+};
+
+type DebtInput = {
+  id?: string;
+  name: string;
+  balanceCents: number;
+  originalBalanceCents?: number;
+  paymentCents: number;
   dueDate?: string | null;
 };
 
@@ -60,6 +73,9 @@ type DbContextValue = {
   saveGoal: (input: GoalInput) => Promise<string>;
   removeGoal: (id: string) => Promise<void>;
   contributeGoal: (id: string, amountCents: number) => Promise<void>;
+  saveDebt: (input: DebtInput) => Promise<string>;
+  removeDebt: (id: string) => Promise<void>;
+  payDebt: (id: string, amountCents: number) => Promise<void>;
   setSetting: (partial: Partial<{
     displayName: string;
     currency: string;
@@ -174,6 +190,35 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
       },
       contributeGoal: async (id, amountCents) => {
         await contributeToGoal(id, amountCents);
+        await refresh();
+      },
+      saveDebt: async (input) => {
+        if (input.id) {
+          const existing = (await listDebts()).find((d) => d.id === input.id);
+          await updateDebt({
+            id: input.id,
+            name: input.name,
+            balanceCents: input.balanceCents,
+            originalBalanceCents:
+              input.originalBalanceCents ??
+              existing?.originalBalanceCents ??
+              input.balanceCents,
+            paymentCents: input.paymentCents,
+            dueDate: input.dueDate,
+          });
+          await refresh();
+          return input.id;
+        }
+        const id = await addDebt(input);
+        await refresh();
+        return id;
+      },
+      removeDebt: async (id) => {
+        await deleteDebt(id);
+        await refresh();
+      },
+      payDebt: async (id, amountCents) => {
+        await logDebtPayment(id, amountCents);
         await refresh();
       },
       setSetting: async (partial) => {

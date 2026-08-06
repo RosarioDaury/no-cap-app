@@ -354,6 +354,7 @@ export async function listDebts(): Promise<Debt[]> {
     id: string;
     name: string;
     balance_cents: number;
+    original_balance_cents: number | null;
     payment_cents: number;
     due_date: string | null;
   }>('SELECT * FROM debts ORDER BY name ASC');
@@ -361,6 +362,7 @@ export async function listDebts(): Promise<Debt[]> {
     id: r.id,
     name: r.name,
     balanceCents: r.balance_cents,
+    originalBalanceCents: r.original_balance_cents || r.balance_cents,
     paymentCents: r.payment_cents,
     dueDate: r.due_date,
   }));
@@ -371,15 +373,60 @@ export async function addDebt(input: {
   balanceCents: number;
   paymentCents: number;
   dueDate?: string | null;
+  originalBalanceCents?: number;
 }) {
   const db = await getDb();
   const id = newId('debt');
+  const original = input.originalBalanceCents ?? input.balanceCents;
   await db.runAsync(
-    `INSERT INTO debts (id, name, balance_cents, payment_cents, due_date)
-     VALUES (?, ?, ?, ?, ?)`,
-    [id, input.name, input.balanceCents, input.paymentCents, input.dueDate ?? null],
+    `INSERT INTO debts (id, name, balance_cents, original_balance_cents, payment_cents, due_date)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [id, input.name, input.balanceCents, original, input.paymentCents, input.dueDate ?? null],
   );
   return id;
+}
+
+export async function updateDebt(input: {
+  id: string;
+  name: string;
+  balanceCents: number;
+  originalBalanceCents: number;
+  paymentCents: number;
+  dueDate?: string | null;
+}) {
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE debts SET
+      name = ?,
+      balance_cents = ?,
+      original_balance_cents = ?,
+      payment_cents = ?,
+      due_date = ?
+     WHERE id = ?`,
+    [
+      input.name,
+      input.balanceCents,
+      input.originalBalanceCents,
+      input.paymentCents,
+      input.dueDate ?? null,
+      input.id,
+    ],
+  );
+}
+
+/** Reduces balance by payment amount (floors at 0). Does not change original balance. */
+export async function logDebtPayment(id: string, amountCents: number) {
+  if (amountCents <= 0) return;
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE debts SET balance_cents = MAX(0, balance_cents - ?) WHERE id = ?`,
+    [amountCents, id],
+  );
+}
+
+export async function deleteDebt(id: string) {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM debts WHERE id = ?', [id]);
 }
 
 /**
@@ -421,6 +468,7 @@ export async function loadSampleData(opts?: { force?: boolean }) {
     await addDebt({
       name: 'Credit card',
       balanceCents: 3600000,
+      originalBalanceCents: 5000000,
       paymentCents: 400000,
       dueDate: '2026-08-15',
     });

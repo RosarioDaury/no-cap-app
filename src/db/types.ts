@@ -43,6 +43,7 @@ export type Debt = {
   id: string;
   name: string;
   balanceCents: number;
+  originalBalanceCents: number;
   paymentCents: number;
   dueDate: string | null;
 };
