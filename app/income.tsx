@@ -14,7 +14,6 @@ import { ArrowLeft } from 'lucide-react-native';
 import {
   Screen,
   DisplayTitle,
-  BodySm,
   Card,
   ButtonPrimary,
   ButtonSecondary,
@@ -38,7 +37,14 @@ type EditDraft = {
 
 export default function IncomeScreen() {
   const router = useRouter();
-  const { incomeTransactions, settings, logIncome, saveTransaction, removeTransaction } = useDb();
+  const {
+    incomeTransactions,
+    categories,
+    settings,
+    logIncome,
+    saveTransaction,
+    removeTransaction,
+  } = useDb();
   const currency = settings?.currency ?? 'RD$';
   const [raw, setRaw] = useState('');
   const [note, setNote] = useState('');
@@ -52,7 +58,9 @@ export default function IncomeScreen() {
   }, []);
 
   const monthIncome = incomeTransactions.filter((t) => t.date.startsWith(monthPrefix));
-  const total = monthIncome.reduce((s, t) => s + t.amountCents, 0);
+  const totalIncome = monthIncome.reduce((s, t) => s + t.amountCents, 0);
+  const totalSpent = categories.reduce((s, c) => s + c.spentCents, 0);
+  const net = totalIncome - totalSpent;
 
   const openEdit = (t: TxnRow) => {
     setEdit({
@@ -123,9 +131,20 @@ export default function IncomeScreen() {
         </View>
 
         <Card variant="tint" tint="teal" style={{ marginBottom: 18 }}>
-          <Text style={styles.label}>This month</Text>
-          <Text style={styles.total}>{formatMoney(total, currency)}</Text>
-          <BodySm>Tracked separately from your expense caps.</BodySm>
+          <Text style={styles.label}>Total this month</Text>
+          <Text style={styles.total}>{formatMoney(totalIncome, currency)}</Text>
+          <View style={styles.metaRow}>
+            <View>
+              <Text style={styles.metaLabel}>Spent</Text>
+              <Text style={styles.metaValue}>{formatMoney(totalSpent, currency)}</Text>
+            </View>
+            <View>
+              <Text style={styles.metaLabel}>Net</Text>
+              <Text style={[styles.metaValue, { color: net >= 0 ? colors.teal[300] : colors.coral[500] }]}>
+                {formatMoney(net, currency)}
+              </Text>
+            </View>
+          </View>
         </Card>
 
         <SectionTitle>Log income</SectionTitle>
@@ -162,15 +181,15 @@ export default function IncomeScreen() {
           }}
         />
 
-        <SectionTitle>Recent income</SectionTitle>
-        {incomeTransactions.length === 0 ? (
+        <SectionTitle>Sources</SectionTitle>
+        {monthIncome.length === 0 ? (
           <EmptyState title="No income logged" message="Add a paycheck or other inflow above." />
         ) : (
-          incomeTransactions.map((t, i) => (
+          monthIncome.map((t, i) => (
             <Pressable
               key={t.id}
               onPress={() => openEdit(t)}
-              style={[styles.row, i === incomeTransactions.length - 1 && { borderBottomWidth: 0 }]}
+              style={[styles.row, i === monthIncome.length - 1 && { borderBottomWidth: 0 }]}
             >
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle}>{t.note || 'Income'}</Text>
@@ -249,6 +268,24 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: colors.teal[300],
     marginBottom: 4,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    gap: 18,
+    marginTop: 10,
+  },
+  metaLabel: {
+    fontFamily: typography.uiBold,
+    fontSize: 10,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
+    marginBottom: 2,
+  },
+  metaValue: {
+    fontFamily: typography.display,
+    fontSize: 15,
+    color: colors.textPrimary,
   },
   input: {
     height: 38,

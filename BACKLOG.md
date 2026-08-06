@@ -130,17 +130,17 @@ Suggested order: **P0 → P1 → P2 → P3**.
 
 ---
 
-### 8. Income — correct month totals + design parity
+### 8. Income — correct month totals + design parity — DONE
 
 | | |
 |--|--|
-| **Why** | Header says “This month” but sums **all** income rows (`listTransactions` with no month filter). Design also shows spent / net. |
-| **Files** | [`app/income.tsx`](app/income.tsx), [`src/db/repositories.ts`](src/db/repositories.ts), design: [`nocap-design 3/07-income.html`](nocap-design%203/07-income.html) |
+| **Status** | Completed (awaiting commit confirmation) |
+| **What changed** | Month-filtered income total; Spent (category month spend) + Net (income − spent); Sources list shows this month’s income rows. |
+| **Files** | [`app/income.tsx`](app/income.tsx) |
 | **Acceptance criteria** | |
-| | - Monthly income total filters by current calendar month |
-| | - Show spent (month expenses) and net (income − spent) |
-| | - Edit/delete income entries (ties to task 5) |
-| | - Optional: source icons / recurring label if product wants full HTML match |
+| | - [x] Monthly income filtered by calendar month |
+| | - [x] Show spent and net |
+| | - [x] Edit/delete already wired (task 5) |
 
 ---
 
@@ -381,7 +381,7 @@ P1
 [x] 5. Transaction edit & delete
 [x] 6. Cap alerts
 [x] 7. Expense date picker
-[ ] 8. Income month filter + spent/net
+[x] 8. Income month filter + spent/net
 [ ] 9. Export / import backup
 [ ] 10. Currency + display name settings
 
