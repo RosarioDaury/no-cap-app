@@ -1,8 +1,9 @@
 import { View, Text, Pressable, TextInput, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Sparkles, MessageCircle } from 'lucide-react-native';
+import { Sparkles, MessageCircle, WifiOff } from 'lucide-react-native';
 import { Screen, Card, BodySm, DisplayTitle } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useAiAvailability } from '@/src/hooks/useAiAvailability';
 import { buildInsights } from '@/src/lib/insights';
 import { colors, typography, TintName, tintPalette } from '@/src/theme/theme';
 
@@ -16,6 +17,7 @@ const toneMap: Record<string, TintName> = {
 export default function InsightsScreen() {
   const router = useRouter();
   const { categories, settings } = useDb();
+  const { available, reason } = useAiAvailability();
   const currency = settings?.currency ?? 'RD$';
   const threshold = settings?.capAlertThreshold ?? 80;
   const cards = buildInsights(categories, currency, threshold);
@@ -69,7 +71,7 @@ export default function InsightsScreen() {
           })}
         </View>
 
-        {settings?.aiConsent ? (
+        {available ? (
           <View style={styles.chatStub}>
             <MessageCircle size={15} color={colors.textMuted} />
             <TextInput
@@ -78,6 +80,13 @@ export default function InsightsScreen() {
               placeholderTextColor={colors.textMuted}
               style={styles.chatInput}
             />
+          </View>
+        ) : reason === 'offline' ? (
+          <View style={styles.chatGate}>
+            <WifiOff size={15} color={colors.textMuted} />
+            <BodySm style={{ flex: 1, color: colors.textSecondary }}>
+              Conversational AI needs an internet connection.
+            </BodySm>
           </View>
         ) : (
           <Pressable

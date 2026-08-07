@@ -210,7 +210,12 @@ export default function SettingsScreen() {
         <View style={{ marginBottom: 16 }}>
           <View style={styles.switchRow}>
             <Sparkles size={16} color={colors.textSecondary} />
-            <Text style={styles.switchTitle}>Conversational AI advice</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.switchTitle}>Conversational AI advice</Text>
+              <Text style={styles.switchSub}>
+                Opt-in required. Chat also needs an internet connection.
+              </Text>
+            </View>
             <Switch
               value={!!settings?.aiConsent}
               onValueChange={(v) => setSetting({ aiConsent: v ? 1 : 0 })}
@@ -336,10 +341,15 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   switchTitle: {
-    flex: 1,
     fontFamily: typography.uiSemiBold,
     fontSize: 13,
     color: colors.textPrimary,
+  },
+  switchSub: {
+    fontFamily: typography.ui,
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 2,
   },
   backdrop: {
     flex: 1,

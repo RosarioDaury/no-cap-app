@@ -61,8 +61,7 @@ export default function PermissionsScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.title}>Conversational AI advice</Text>
               <BodySm>
-                Sends anonymized spending summaries to generate written advice. Optional, off by
-                default.
+                Optional, off by default. Requires an internet connection when you use chat advice.
               </BodySm>
             </View>
             <Switch
