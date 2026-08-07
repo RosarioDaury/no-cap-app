@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, typography, spacing } from '@/src/theme/theme';
+import { ThemeColors, typography, spacing } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 
 type ScreenProps = {
   children: React.ReactNode;
@@ -11,6 +13,8 @@ type ScreenProps = {
 
 export function Screen({ children, style, edges = ['top'], padded = true }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View
       style={[
@@ -28,23 +32,41 @@ export function Screen({ children, style, edges = ['top'], padded = true }: Scre
   );
 }
 
-export function Eyebrow({ children, style, color }: { children: React.ReactNode; style?: TextStyle; color?: string }) {
+export function Eyebrow({
+  children,
+  style,
+  color,
+}: {
+  children: React.ReactNode;
+  style?: TextStyle;
+  color?: string;
+}) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return <Text style={[styles.eyebrow, color ? { color } : null, style]}>{children}</Text>;
 }
 
 export function DisplayTitle({ children, style }: { children: React.ReactNode; style?: TextStyle }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return <Text style={[styles.display, style]}>{children}</Text>;
 }
 
 export function SectionTitle({ children, style }: { children: React.ReactNode; style?: TextStyle }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return <Text style={[styles.section, style]}>{children}</Text>;
 }
 
 export function BodySm({ children, style }: { children: React.ReactNode; style?: TextStyle }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return <Text style={[styles.bodySm, style]}>{children}</Text>;
 }
 
 export function EmptyState({ title, message }: { title: string; message: string }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.empty}>
       <Text style={styles.emptyTitle}>{title}</Text>
@@ -53,49 +75,51 @@ export function EmptyState({ title, message }: { title: string; message: string 
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.bgApp,
-  },
-  padded: {
-    paddingHorizontal: spacing.xl,
-  },
-  eyebrow: {
-    fontFamily: typography.uiBold,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 4,
-  },
-  display: {
-    fontFamily: typography.display,
-    fontSize: 22,
-    color: colors.textPrimary,
-    letterSpacing: -0.2,
-  },
-  section: {
-    fontFamily: typography.uiBold,
-    fontSize: 12.5,
-    color: colors.textSecondary,
-    letterSpacing: 0.2,
-    marginBottom: 10,
-  },
-  bodySm: {
-    fontFamily: typography.ui,
-    fontSize: 12.5,
-    color: colors.textSecondary,
-    lineHeight: 19,
-  },
-  empty: {
-    paddingVertical: 40,
-    alignItems: 'center',
-    gap: 8,
-  },
-  emptyTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 15,
-    color: colors.textPrimary,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: colors.bgApp,
+    },
+    padded: {
+      paddingHorizontal: spacing.xl,
+    },
+    eyebrow: {
+      fontFamily: typography.uiBold,
+      fontSize: 10,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 4,
+    },
+    display: {
+      fontFamily: typography.display,
+      fontSize: 22,
+      color: colors.textPrimary,
+      letterSpacing: -0.2,
+    },
+    section: {
+      fontFamily: typography.uiBold,
+      fontSize: 12.5,
+      color: colors.textSecondary,
+      letterSpacing: 0.2,
+      marginBottom: 10,
+    },
+    bodySm: {
+      fontFamily: typography.ui,
+      fontSize: 12.5,
+      color: colors.textSecondary,
+      lineHeight: 19,
+    },
+    empty: {
+      paddingVertical: 40,
+      alignItems: 'center',
+      gap: 8,
+    },
+    emptyTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 15,
+      color: colors.textPrimary,
+    },
+  });
+}

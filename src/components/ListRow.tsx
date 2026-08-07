@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
-import { colors, typography } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 
 type ListRowProps = {
   icon?: React.ReactNode;
@@ -21,6 +23,8 @@ export function ListRow({
   showChevron = true,
   last,
 }: ListRowProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const content = (
     <View style={[styles.row, last && styles.last]}>
       {icon}
@@ -29,9 +33,7 @@ export function ListRow({
         {subtitle ? <Text style={styles.sub}>{subtitle}</Text> : null}
       </View>
       {value ? <Text style={styles.value}>{value}</Text> : null}
-      {showChevron && onPress ? (
-        <ChevronRight size={14} color={colors.textMuted} />
-      ) : null}
+      {showChevron && onPress ? <ChevronRight size={14} color={colors.textMuted} /> : null}
     </View>
   );
 
@@ -52,53 +54,55 @@ export function RowIcon({
   children: React.ReactNode;
   backgroundColor?: string;
 }) {
+  const { colors } = useTheme();
   return (
-    <View style={[styles.icon, backgroundColor ? { backgroundColor } : null]}>
+    <View
+      style={{
+        width: 34,
+        height: 34,
+        borderRadius: 11,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: backgroundColor ?? colors.surfaceAlt,
+      }}
+    >
       {children}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11,
-    paddingVertical: 11,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  last: {
-    borderBottomWidth: 0,
-  },
-  main: {
-    flex: 1,
-  },
-  title: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  sub: {
-    fontFamily: typography.ui,
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 1,
-  },
-  value: {
-    fontFamily: typography.display,
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  icon: {
-    width: 32,
-    height: 32,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 11,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    last: {
+      borderBottomWidth: 0,
+    },
+    main: {
+      flex: 1,
+      gap: 2,
+    },
+    title: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    sub: {
+      fontFamily: typography.ui,
+      fontSize: 11,
+      color: colors.textMuted,
+    },
+    value: {
+      fontFamily: typography.uiMedium,
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginRight: 4,
+    },
+  });
+}

@@ -150,6 +150,7 @@ export async function importBackupReplace(payload: BackupPayload): Promise<void>
     aiConsent: s.aiConsent ?? 0,
     onboardingComplete: 1,
     capAlertThreshold: s.capAlertThreshold ?? 80,
+    theme: s.theme === 'light' ? 'light' : 'dark',
   });
 }
 

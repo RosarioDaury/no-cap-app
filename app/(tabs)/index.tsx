@@ -17,10 +17,11 @@ import {
   currentMonthKey,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { formatDisplayDate, formatMoney, progressRatio, tintForProgress } from '@/src/lib/format';
 import { capAlertLevel, categoriesAtAlert } from '@/src/lib/capAlerts';
 import { buildInsights } from '@/src/lib/insights';
-import { colors, typography, tintPalette } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
 import { CategoryWithSpend } from '@/src/db/types';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -30,6 +31,8 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 export default function HomeDashboard() {
   const router = useRouter();
   const { settings, categories, history, incomeHistory, logExpense, refresh } = useDb();
+  const { colors, tintPalette } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const currency = settings?.currency ?? 'RD$';
   const threshold = settings?.capAlertThreshold ?? 80;
@@ -251,6 +254,8 @@ function CategoryCapRow({
   onSubmit: (cents: number, note?: string) => Promise<void>;
   onCancel: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const progress = progressRatio(cat.spentCents, cat.capCents);
   const tint = tintForProgress(progress, cat.tint);
   const level = capAlertLevel(cat, threshold);
@@ -299,98 +304,100 @@ function CategoryCapRow({
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 24,
-  },
-  alertBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
-    paddingVertical: 12,
-  },
-  alertTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-    marginBottom: 2,
-  },
-  roomCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    marginBottom: 16,
-  },
-  trendsCard: {
-    marginBottom: 16,
-    paddingVertical: 14,
-  },
-  trendsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  trendsTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 14,
-    color: colors.textPrimary,
-  },
-  roomAmount: {
-    fontFamily: typography.display,
-    fontSize: 22,
-    color: colors.teal[300],
-  },
-  insightTeaser: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 12,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  rowTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  rowSub: {
-    fontFamily: typography.ui,
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 1,
-  },
-  badge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  badgeOver: {
-    backgroundColor: colors.coral[50],
-  },
-  badgeWarn: {
-    backgroundColor: colors.gold[50],
-  },
-  badgeText: {
-    fontFamily: typography.uiBold,
-    fontSize: 10,
-    color: colors.textPrimary,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      paddingBottom: 24,
+    },
+    alertBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 12,
+      paddingVertical: 12,
+    },
+    alertTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+      marginBottom: 2,
+    },
+    roomCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+      marginBottom: 16,
+    },
+    trendsCard: {
+      marginBottom: 16,
+      paddingVertical: 14,
+    },
+    trendsHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 10,
+    },
+    trendsTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 14,
+      color: colors.textPrimary,
+    },
+    roomAmount: {
+      fontFamily: typography.display,
+      fontSize: 22,
+      color: colors.teal[300],
+    },
+    insightTeaser: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginTop: 12,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 10,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    rowTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    rowSub: {
+      fontFamily: typography.ui,
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 1,
+    },
+    badge: {
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      borderRadius: 8,
+    },
+    badgeOver: {
+      backgroundColor: colors.coral[50],
+    },
+    badgeWarn: {
+      backgroundColor: colors.gold[50],
+    },
+    badgeText: {
+      fontFamily: typography.uiBold,
+      fontSize: 10,
+      color: colors.textPrimary,
+    },
+  });
+}

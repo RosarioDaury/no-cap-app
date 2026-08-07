@@ -1,11 +1,14 @@
 export type TintName = 'teal' | 'gold' | 'plum' | 'coral';
 
+export type ThemeMode = 'dark' | 'light';
+
 export type AppSettings = {
   displayName: string;
   currency: string;
   aiConsent: number;
   onboardingComplete: number;
   capAlertThreshold: number;
+  theme: ThemeMode;
 };
 
 export type Category = {

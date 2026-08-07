@@ -1,6 +1,7 @@
+import { useMemo, useState } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { useState } from 'react';
-import { colors, radius, typography } from '@/src/theme/theme';
+import { ThemeColors, ThemeMode, radius, typography } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
 import { parseMoneyInput } from '@/src/lib/format';
 
@@ -17,6 +18,8 @@ export function QuickLogPanel({
   onSubmit,
   onCancel,
 }: QuickLogPanelProps) {
+  const { colors, mode } = useTheme();
+  const styles = useMemo(() => makeStyles(colors, mode), [colors, mode]);
   const [raw, setRaw] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
@@ -79,43 +82,45 @@ export function QuickLogPanel({
   );
 }
 
-const styles = StyleSheet.create({
-  panel: {
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: 'rgba(34,211,238,0.3)',
-    borderRadius: radius.md,
-    paddingVertical: 12,
-    paddingHorizontal: 13,
-    marginTop: 8,
-    shadowColor: colors.teal[500],
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  amount: {
-    fontFamily: typography.display,
-    fontSize: 22,
-    color: colors.teal[300],
-    marginBottom: 8,
-    padding: 0,
-  },
-  note: {
-    fontFamily: typography.ui,
-    fontSize: 13,
-    color: colors.textPrimary,
-    marginBottom: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 0,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  error: {
-    fontFamily: typography.ui,
-    fontSize: 12,
-    color: colors.coral[500],
-    marginBottom: 8,
-  },
-});
+function makeStyles(colors: ThemeColors, mode: ThemeMode) {
+  return StyleSheet.create({
+    panel: {
+      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: 'rgba(34,211,238,0.3)',
+      borderRadius: radius.md,
+      paddingVertical: 12,
+      paddingHorizontal: 13,
+      marginTop: 8,
+      shadowColor: colors.teal[500],
+      shadowOpacity: 0.2,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 0 },
+    },
+    amount: {
+      fontFamily: typography.display,
+      fontSize: 22,
+      color: mode === 'light' ? colors.teal[700] : colors.teal[300],
+      marginBottom: 8,
+      padding: 0,
+    },
+    note: {
+      fontFamily: typography.ui,
+      fontSize: 13,
+      color: colors.textPrimary,
+      marginBottom: 10,
+      paddingVertical: 6,
+      paddingHorizontal: 0,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    error: {
+      fontFamily: typography.ui,
+      fontSize: 12,
+      color: colors.coral[500],
+      marginBottom: 8,
+    },
+  });
+}

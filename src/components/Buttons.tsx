@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, radius, typography } from '@/src/theme/theme';
+import { ThemeColors, radius, typography } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 
 type ButtonProps = {
   label: string;
@@ -12,6 +14,8 @@ type ButtonProps = {
 };
 
 export function ButtonPrimary({ label, onPress, disabled, loading, style, compact }: ButtonProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable
       onPress={onPress}
@@ -25,7 +29,7 @@ export function ButtonPrimary({ label, onPress, disabled, loading, style, compac
         style={[styles.primary, compact && styles.compact, disabled && { opacity: 0.5 }]}
       >
         {loading ? (
-          <ActivityIndicator color={colors.teal[300]} />
+          <ActivityIndicator color={colors.chromeText} />
         ) : (
           <Text style={styles.primaryText}>{label}</Text>
         )}
@@ -35,6 +39,8 @@ export function ButtonPrimary({ label, onPress, disabled, loading, style, compac
 }
 
 export function ButtonSecondary({ label, onPress, disabled, style, compact }: ButtonProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable
       onPress={onPress}
@@ -52,6 +58,8 @@ export function ButtonSecondary({ label, onPress, disabled, style, compact }: Bu
 }
 
 export function ButtonGhost({ label, onPress, disabled, style }: ButtonProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable
       onPress={onPress}
@@ -70,6 +78,8 @@ export function QuickAddButton({
   expanded: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable
       onPress={onPress}
@@ -80,7 +90,7 @@ export function QuickAddButton({
       <LinearGradient
         colors={
           expanded
-            ? ['#2a3138', '#14171a']
+            ? [colors.chromeExpanded1, colors.chromeExpanded2]
             : [colors.chrome1, colors.chrome2, colors.chrome3]
         }
         start={{ x: 0, y: 0 }}
@@ -93,73 +103,75 @@ export function QuickAddButton({
   );
 }
 
-const styles = StyleSheet.create({
-  primary: {
-    height: 48,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    shadowColor: colors.teal[500],
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 4,
-  },
-  primaryText: {
-    fontFamily: typography.uiBold,
-    fontSize: 13,
-    letterSpacing: 0.2,
-    color: colors.teal[300],
-  },
-  secondary: {
-    height: 48,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  secondaryText: {
-    fontFamily: typography.uiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  ghost: {
-    height: 48,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ghostText: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  compact: {
-    height: 38,
-  },
-  metalCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-  },
-  metalCircleActive: {
-    shadowColor: colors.teal[500],
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  metalIcon: {
-    color: colors.teal[300],
-    fontSize: 18,
-    fontWeight: '600',
-    lineHeight: 20,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    primary: {
+      height: 48,
+      borderRadius: radius.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.chromeBorder,
+      shadowColor: colors.teal[500],
+      shadowOpacity: 0.25,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 0 },
+      elevation: 4,
+    },
+    primaryText: {
+      fontFamily: typography.uiBold,
+      fontSize: 13,
+      letterSpacing: 0.2,
+      color: colors.chromeText,
+    },
+    secondary: {
+      height: 48,
+      borderRadius: radius.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    secondaryText: {
+      fontFamily: typography.uiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    ghost: {
+      height: 48,
+      borderRadius: radius.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    ghostText: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    compact: {
+      height: 38,
+    },
+    metalCircle: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.chromeBorder,
+    },
+    metalCircleActive: {
+      shadowColor: colors.teal[500],
+      shadowOpacity: 0.35,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 0 },
+    },
+    metalIcon: {
+      color: colors.chromeText,
+      fontSize: 18,
+      fontWeight: '600',
+      lineHeight: 20,
+    },
+  });
+}

@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { colors, typography } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 
 export type MonthBarPoint = {
   month: string;
@@ -34,18 +36,12 @@ export function currentMonthKey(): string {
 
 type MonthBarChartProps = {
   primary: MonthBarPoint[];
-  /** Optional second series for paired bars (e.g. income). */
   secondary?: MonthBarPoint[];
-  /** Absolute max for primary scaling. Defaults to max of primary values. */
   maxValue?: number;
-  /** Absolute max for secondary. Defaults to max of secondary values. */
   secondaryMaxValue?: number;
-  /** Map primary values to bar fill. */
   colorForPrimary?: (point: MonthBarPoint, index: number) => string;
-  /** Map secondary values to bar fill. */
   colorForSecondary?: (point: MonthBarPoint, index: number) => string;
   chartHeight?: number;
-  /** Horizontal inset already applied by parent padding; default card padding ~40. */
   horizontalInset?: number;
 };
 
@@ -59,6 +55,8 @@ export function MonthBarChart({
   chartHeight = 140,
   horizontalInset = 72,
 }: MonthBarChartProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const chartWidth = Dimensions.get('window').width - horizontalInset;
   const gap = 8;
   const count = primary.length;
@@ -67,18 +65,15 @@ export function MonthBarChart({
   const barGap = paired ? 3 : 0;
   const barWidth = paired ? (groupWidth - barGap) / 2 : groupWidth;
 
-  const primaryMax =
-    maxValue ?? Math.max(...primary.map((p) => p.valueCents), 1);
+  const primaryMax = maxValue ?? Math.max(...primary.map((p) => p.valueCents), 1);
   const secondaryMax =
-    secondaryMaxValue ??
-    Math.max(...(secondary?.map((p) => p.valueCents) ?? [0]), 1);
+    secondaryMaxValue ?? Math.max(...(secondary?.map((p) => p.valueCents) ?? [0]), 1);
 
   const plotHeight = chartHeight - 10;
   const thisMonth = currentMonthKey();
 
   const defaultPrimaryColor = (point: MonthBarPoint) => {
     if (point.month === thisMonth) return colors.teal[700];
-    if (point.valueCents > 0) return colors.border;
     return colors.border;
   };
 
@@ -154,19 +149,21 @@ export function MonthBarChart({
   );
 }
 
-const styles = StyleSheet.create({
-  labels: {
-    flexDirection: 'row',
-    marginTop: 8,
-  },
-  label: {
-    fontFamily: typography.ui,
-    fontSize: 10,
-    color: colors.textMuted,
-    textAlign: 'center',
-  },
-  labelCurrent: {
-    color: colors.textPrimary,
-    fontFamily: typography.uiSemiBold,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    labels: {
+      flexDirection: 'row',
+      marginTop: 8,
+    },
+    label: {
+      fontFamily: typography.ui,
+      fontSize: 10,
+      color: colors.textMuted,
+      textAlign: 'center',
+    },
+    labelCurrent: {
+      color: colors.textPrimary,
+      fontFamily: typography.uiSemiBold,
+    },
+  });
+}

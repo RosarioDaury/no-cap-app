@@ -1,5 +1,6 @@
 import { ShoppingCart, Zap, PartyPopper, Fuel, Heart, BookOpen, Umbrella, CreditCard, Car } from 'lucide-react-native';
-import { colors, TintName, tintPalette } from '@/src/theme/theme';
+import { TintName, tintPalette as defaultTintPalette, colors as defaultColors } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 
 const map: Record<string, typeof ShoppingCart> = {
   'shopping-cart': ShoppingCart,
@@ -25,11 +26,24 @@ export function CategoryIcon({
   tint?: TintName;
   size?: number;
 }) {
+  const { colors, tintPalette } = useTheme();
   const Icon = map[name] ?? ShoppingCart;
   const color = tint ? tintPalette[tint][700] : colors.textSecondary;
   return <Icon size={size} color={color} />;
 }
 
-export function iconBg(tint: TintName): string {
-  return tintPalette[tint][100];
+export function iconBg(
+  tint: TintName,
+  palette: typeof defaultTintPalette = defaultTintPalette,
+): string {
+  return palette[tint][100];
 }
+
+/** Prefer this in themed screens so icon chips follow light/dark. */
+export function useIconBg() {
+  const { tintPalette } = useTheme();
+  return (tint: TintName) => tintPalette[tint][100];
+}
+
+// Keep defaultColors import used for type-check of palette shape
+void defaultColors;

@@ -8,12 +8,13 @@ import {
   CategoryIcon,
   CATEGORY_ICON_OPTIONS,
   CATEGORY_TINT_OPTIONS,
-  iconBg,
+  useIconBg,
 } from '@/src/components/CategoryIcon';
 import { useOnboarding } from '@/src/hooks/OnboardingContext';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { BUDGET_TEMPLATES } from '@/src/db/database';
-import { colors, typography, TintName, tintPalette } from '@/src/theme/theme';
+import { ThemeColors, TintName, typography } from '@/src/theme/theme';
 import { parseMoneyInput } from '@/src/lib/format';
 
 type DraftCat = {
@@ -35,6 +36,9 @@ export default function BudgetSetupScreen() {
   const router = useRouter();
   const { templateId, aiConsent, displayName } = useOnboarding();
   const { finishOnboarding } = useDb();
+  const { colors, tintPalette } = useTheme();
+  const iconBg = useIconBg();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const template = BUDGET_TEMPLATES.find((t) => t.id === templateId) ?? BUDGET_TEMPLATES[0];
 
   const [cats, setCats] = useState<DraftCat[]>(
@@ -215,107 +219,109 @@ export default function BudgetSetupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  catRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 11,
-    paddingHorizontal: 13,
-  },
-  catName: {
-    flex: 1,
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  capInput: {
-    width: 78,
-    height: 38,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    color: colors.textPrimary,
-    paddingHorizontal: 12,
-    fontFamily: typography.ui,
-    fontSize: 13,
-  },
-  addBtn: {
-    height: 48,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 6,
-  },
-  addText: {
-    fontFamily: typography.uiBold,
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 36,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  label: {
-    fontFamily: typography.uiBold,
-    fontSize: 11,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 6,
-    marginTop: 4,
-  },
-  modalInput: {
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    color: colors.textPrimary,
-    paddingHorizontal: 12,
-    fontFamily: typography.ui,
-    marginBottom: 10,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  iconChip: {
-    width: 36,
-    height: 36,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconChipActive: {
-    borderWidth: 2,
-    borderColor: colors.textPrimary,
-  },
-  tintChip: {
-    width: 28,
-    height: 28,
-    borderRadius: 999,
-  },
-  tintChipActive: {
-    borderWidth: 2,
-    borderColor: colors.textPrimary,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    catRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 11,
+      paddingHorizontal: 13,
+    },
+    catName: {
+      flex: 1,
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    capInput: {
+      width: 78,
+      height: 38,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.textPrimary,
+      paddingHorizontal: 12,
+      fontFamily: typography.ui,
+      fontSize: 13,
+    },
+    addBtn: {
+      height: 48,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: 6,
+    },
+    addText: {
+      fontFamily: typography.uiBold,
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      justifyContent: 'flex-end',
+    },
+    modalSheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: 36,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    label: {
+      fontFamily: typography.uiBold,
+      fontSize: 11,
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 6,
+      marginTop: 4,
+    },
+    modalInput: {
+      height: 44,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.textPrimary,
+      paddingHorizontal: 12,
+      fontFamily: typography.ui,
+      marginBottom: 10,
+    },
+    chipRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 12,
+    },
+    iconChip: {
+      width: 36,
+      height: 36,
+      borderRadius: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconChipActive: {
+      borderWidth: 2,
+      borderColor: colors.textPrimary,
+    },
+    tintChip: {
+      width: 28,
+      height: 28,
+      borderRadius: 999,
+    },
+    tintChipActive: {
+      borderWidth: 2,
+      borderColor: colors.textPrimary,
+    },
+  });
+}

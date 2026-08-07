@@ -4,9 +4,12 @@ import Svg, { Circle } from 'react-native-svg';
 import { Screen, DisplayTitle, BodySm } from '@/src/components';
 import { ButtonPrimary, ButtonGhost } from '@/src/components/Buttons';
 import { useDb } from '@/src/hooks/DbProvider';
-import { colors, typography } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
+import { typography } from '@/src/theme/theme';
 
 function LogoRings() {
+  const { colors } = useTheme();
+
   return (
     <Svg width={120} height={46} style={{ marginBottom: 28 }}>
       <Circle cx={23} cy={23} r={20} fill="none" stroke={colors.border} strokeWidth={3} />

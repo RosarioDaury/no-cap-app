@@ -22,9 +22,10 @@ import {
   SectionTitle,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { Transaction } from '@/src/db/types';
 import { formatMoney, formatShortDate, parseMoneyInput } from '@/src/lib/format';
-import { colors, typography } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
 
 type TxnRow = Transaction & { categoryName?: string };
 
@@ -45,6 +46,8 @@ export default function IncomeScreen() {
     saveTransaction,
     removeTransaction,
   } = useDb();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const currency = settings?.currency ?? 'RD$';
   const [raw, setRaw] = useState('');
   const [note, setNote] = useState('');
@@ -247,104 +250,106 @@ export default function IncomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 },
-  topbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  label: {
-    fontFamily: typography.uiBold,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.teal[300],
-    marginBottom: 4,
-  },
-  total: {
-    fontFamily: typography.display,
-    fontSize: 28,
-    color: colors.teal[300],
-    marginBottom: 4,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    gap: 18,
-    marginTop: 10,
-  },
-  metaLabel: {
-    fontFamily: typography.uiBold,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 2,
-  },
-  metaValue: {
-    fontFamily: typography.display,
-    fontSize: 15,
-    color: colors.textPrimary,
-  },
-  input: {
-    height: 38,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    color: colors.textPrimary,
-    paddingHorizontal: 12,
-    fontFamily: typography.ui,
-    fontSize: 13,
-    marginBottom: 10,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 11,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  rowTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  rowSub: {
-    fontFamily: typography.ui,
-    fontSize: 11,
-    color: colors.textMuted,
-  },
-  value: {
-    fontFamily: typography.display,
-    fontSize: 13,
-    color: colors.teal[300],
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 36,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  fieldLabel: {
-    fontFamily: typography.uiBold,
-    fontSize: 11,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 6,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 },
+    topbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    label: {
+      fontFamily: typography.uiBold,
+      fontSize: 10,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      color: colors.teal[300],
+      marginBottom: 4,
+    },
+    total: {
+      fontFamily: typography.display,
+      fontSize: 28,
+      color: colors.teal[300],
+      marginBottom: 4,
+    },
+    metaRow: {
+      flexDirection: 'row',
+      gap: 18,
+      marginTop: 10,
+    },
+    metaLabel: {
+      fontFamily: typography.uiBold,
+      fontSize: 10,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 2,
+    },
+    metaValue: {
+      fontFamily: typography.display,
+      fontSize: 15,
+      color: colors.textPrimary,
+    },
+    input: {
+      height: 38,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.textPrimary,
+      paddingHorizontal: 12,
+      fontFamily: typography.ui,
+      fontSize: 13,
+      marginBottom: 10,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 11,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    rowTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    rowSub: {
+      fontFamily: typography.ui,
+      fontSize: 11,
+      color: colors.textMuted,
+    },
+    value: {
+      fontFamily: typography.display,
+      fontSize: 13,
+      color: colors.teal[300],
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: 36,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    fieldLabel: {
+      fontFamily: typography.uiBold,
+      fontSize: 11,
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 6,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+  });
+}

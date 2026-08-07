@@ -5,6 +5,7 @@ import {
   CategoryWithSpend,
   Debt,
   Goal,
+  ThemeMode,
   TintName,
   Transaction,
 } from '@/src/db/types';
@@ -22,23 +23,29 @@ export async function getSettings(): Promise<AppSettings> {
     ai_consent: number;
     onboarding_complete: number;
     cap_alert_threshold: number;
+    theme: string | null;
   }>('SELECT * FROM settings WHERE id = 1');
+  const theme: ThemeMode = row?.theme === 'light' ? 'light' : 'dark';
   return {
     displayName: row?.display_name ?? 'Alex',
     currency: row?.currency ?? 'RD$',
     aiConsent: row?.ai_consent ?? 0,
     onboardingComplete: row?.onboarding_complete ?? 0,
     capAlertThreshold: row?.cap_alert_threshold ?? 80,
+    theme,
   };
 }
 
-export async function updateSettings( partial: Partial<{
-  displayName: string;
-  currency: string;
-  aiConsent: number;
-  onboardingComplete: number;
-  capAlertThreshold: number;
-}>) {
+export async function updateSettings(
+  partial: Partial<{
+    displayName: string;
+    currency: string;
+    aiConsent: number;
+    onboardingComplete: number;
+    capAlertThreshold: number;
+    theme: ThemeMode;
+  }>,
+) {
   const db = await getDb();
   const current = await getSettings();
   await db.runAsync(
@@ -47,7 +54,8 @@ export async function updateSettings( partial: Partial<{
       currency = ?,
       ai_consent = ?,
       onboarding_complete = ?,
-      cap_alert_threshold = ?
+      cap_alert_threshold = ?,
+      theme = ?
      WHERE id = 1`,
     [
       partial.displayName ?? current.displayName,
@@ -55,6 +63,7 @@ export async function updateSettings( partial: Partial<{
       partial.aiConsent ?? current.aiConsent,
       partial.onboardingComplete ?? current.onboardingComplete,
       partial.capAlertThreshold ?? current.capAlertThreshold,
+      partial.theme ?? current.theme,
     ],
   );
 }
@@ -629,7 +638,8 @@ export async function resetAllData(): Promise<void> {
       currency = 'RD$',
       ai_consent = 0,
       onboarding_complete = 0,
-      cap_alert_threshold = 80
+      cap_alert_threshold = 80,
+      theme = 'dark'
     WHERE id = 1;
   `);
 }

@@ -24,14 +24,15 @@ import {
 } from '@/src/components';
 import {
   CategoryIcon,
-  iconBg,
+  useIconBg,
   CATEGORY_ICON_OPTIONS,
   CATEGORY_TINT_OPTIONS,
 } from '@/src/components/CategoryIcon';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { CategoryWithSpend } from '@/src/db/types';
 import { formatMoney, parseMoneyInput } from '@/src/lib/format';
-import { colors, typography, TintName, tintPalette } from '@/src/theme/theme';
+import { ThemeColors, TintName, typography } from '@/src/theme/theme';
 
 type Draft = {
   id?: string;
@@ -51,6 +52,9 @@ const emptyDraft = (): Draft => ({
 export default function CategoriesScreen() {
   const router = useRouter();
   const { categories, settings, saveCategory, removeCategory } = useDb();
+  const { colors, tintPalette } = useTheme();
+  const iconBg = useIconBg();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const currency = settings?.currency ?? 'RD$';
   const [modalOpen, setModalOpen] = useState(false);
   const [draft, setDraft] = useState<Draft>(emptyDraft());
@@ -248,104 +252,106 @@ export default function CategoriesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 },
-  topbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  rowCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 13,
-  },
-  rowMain: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  rowTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  rowSub: {
-    fontFamily: typography.ui,
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 1,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 36,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  label: {
-    fontFamily: typography.uiBold,
-    fontSize: 11,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 6,
-    marginTop: 4,
-  },
-  input: {
-    height: 42,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    color: colors.textPrimary,
-    paddingHorizontal: 12,
-    fontFamily: typography.ui,
-    fontSize: 13,
-    marginBottom: 10,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  iconChip: {
-    width: 36,
-    height: 36,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  iconChipActive: {
-    borderColor: colors.teal[500],
-    borderWidth: 2,
-  },
-  tintChip: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-  },
-  tintChipActive: {
-    borderWidth: 2,
-    borderColor: colors.textPrimary,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 },
+    topbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    rowCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 12,
+      paddingHorizontal: 13,
+    },
+    rowMain: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    rowTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    rowSub: {
+      fontFamily: typography.ui,
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 1,
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: 36,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    label: {
+      fontFamily: typography.uiBold,
+      fontSize: 11,
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 6,
+      marginTop: 4,
+    },
+    input: {
+      height: 42,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.textPrimary,
+      paddingHorizontal: 12,
+      fontFamily: typography.ui,
+      fontSize: 13,
+      marginBottom: 10,
+    },
+    chipRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 12,
+    },
+    iconChip: {
+      width: 36,
+      height: 36,
+      borderRadius: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    iconChipActive: {
+      borderColor: colors.teal[500],
+      borderWidth: 2,
+    },
+    tintChip: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+    },
+    tintChipActive: {
+      borderWidth: 2,
+      borderColor: colors.textPrimary,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 8,
+    },
+  });
+}

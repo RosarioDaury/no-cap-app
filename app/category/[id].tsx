@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ import {
   Chip,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { getCategory, listTransactions } from '@/src/db/repositories';
 import { Category, Transaction } from '@/src/db/types';
 import {
@@ -39,7 +40,7 @@ import {
   progressRatio,
   tintForProgress,
 } from '@/src/lib/format';
-import { colors, typography } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -68,6 +69,8 @@ export default function CategoryDetailScreen() {
     saveTransaction,
     removeTransaction,
   } = useDb();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const currency = settings?.currency ?? 'RD$';
   const live = categories.find((c) => c.id === id);
   const [category, setCategory] = useState<Category | null>(null);
@@ -353,99 +356,101 @@ export default function CategoryDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 32,
-  },
-  topbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  summary: {
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  amount: {
-    fontFamily: typography.display,
-    fontSize: 22,
-    color: colors.textPrimary,
-  },
-  txn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 11,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  txnTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  txnSub: {
-    fontFamily: typography.ui,
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 1,
-  },
-  txnValue: {
-    fontFamily: typography.display,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  sheetScroll: { flexGrow: 1, justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 36,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  label: {
-    fontFamily: typography.uiBold,
-    fontSize: 11,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 6,
-    marginTop: 4,
-  },
-  input: {
-    height: 42,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    color: colors.textPrimary,
-    paddingHorizontal: 12,
-    fontFamily: typography.ui,
-    fontSize: 13,
-    marginBottom: 10,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 14,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 8,
+      paddingBottom: 32,
+    },
+    topbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    summary: {
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+    },
+    amount: {
+      fontFamily: typography.display,
+      fontSize: 22,
+      color: colors.textPrimary,
+    },
+    txn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 11,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    txnTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    txnSub: {
+      fontFamily: typography.ui,
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 1,
+    },
+    txnValue: {
+      fontFamily: typography.display,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      justifyContent: 'flex-end',
+    },
+    sheetScroll: { flexGrow: 1, justifyContent: 'flex-end' },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: 36,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    label: {
+      fontFamily: typography.uiBold,
+      fontSize: 11,
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 6,
+      marginTop: 4,
+    },
+    input: {
+      height: 42,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.textPrimary,
+      paddingHorizontal: 12,
+      fontFamily: typography.ui,
+      fontSize: 13,
+      marginBottom: 10,
+    },
+    chips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 14,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+  });
+}

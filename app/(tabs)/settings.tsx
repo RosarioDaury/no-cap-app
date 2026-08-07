@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {
   Download,
   Upload,
   Moon,
+  Sun,
   Info,
   TrendingUp,
   Wallet,
@@ -28,7 +29,8 @@ import {
 import { Screen, DisplayTitle, Eyebrow, ListRow } from '@/src/components';
 import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
 import { useDb } from '@/src/hooks/DbProvider';
-import { colors, typography } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
+import { ThemeColors, typography } from '@/src/theme/theme';
 
 const CURRENCY_OPTIONS = [
   { code: 'RD$', label: 'Dominican peso (RD$)' },
@@ -39,6 +41,8 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { settings, setSetting, loadSampleData, categories, exportBackup, importBackup, resetData } =
     useDb();
+  const { colors, mode, setMode } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [nameModal, setNameModal] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
@@ -112,6 +116,25 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const onPickTheme = () => {
+    const current = settings?.theme === 'light' ? 'light' : 'dark';
+    Alert.alert('Theme', 'Choose light or dark appearance.', [
+      {
+        text: `Dark${current === 'dark' ? ' ✓' : ''}`,
+        onPress: () => {
+          void setMode('dark');
+        },
+      },
+      {
+        text: `Light${current === 'light' ? ' ✓' : ''}`,
+        onPress: () => {
+          void setMode('light');
+        },
+      },
+      { text: 'Cancel', style: 'cancel' as const },
+    ]);
+  };
+
   const onSaveName = async () => {
     const trimmed = nameDraft.trim();
     if (!trimmed) {
@@ -160,6 +183,8 @@ export default function SettingsScreen() {
       ],
     );
   };
+
+  const ThemeIcon = mode === 'light' ? Sun : Moon;
 
   return (
     <Screen edges={['top']} padded={false}>
@@ -278,10 +303,11 @@ export default function SettingsScreen() {
         <Eyebrow>App</Eyebrow>
         <View>
           <ListRow
-            icon={<Moon size={16} color={colors.textSecondary} />}
+            icon={<ThemeIcon size={16} color={colors.textSecondary} />}
             title="Theme"
-            value="Dark (only)"
-            showChevron={false}
+            value={settings?.theme === 'light' ? 'Light' : 'Dark'}
+            showChevron
+            onPress={onPickTheme}
           />
           <ListRow
             icon={<Info size={16} color={colors.textSecondary} />}
@@ -326,68 +352,70 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 32,
-  },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11,
-    paddingVertical: 11,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  switchTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  switchSub: {
-    fontFamily: typography.ui,
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 36,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  label: {
-    fontFamily: typography.uiBold,
-    fontSize: 11,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 6,
-    marginTop: 4,
-  },
-  input: {
-    height: 42,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    color: colors.textPrimary,
-    paddingHorizontal: 12,
-    fontFamily: typography.ui,
-    fontSize: 13,
-    marginBottom: 16,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 8,
+      paddingBottom: 32,
+    },
+    switchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 11,
+      paddingVertical: 11,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    switchTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    switchSub: {
+      fontFamily: typography.ui,
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: 36,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    label: {
+      fontFamily: typography.uiBold,
+      fontSize: 11,
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 6,
+      marginTop: 4,
+    },
+    input: {
+      height: 42,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.textPrimary,
+      paddingHorizontal: 12,
+      fontFamily: typography.ui,
+      fontSize: 13,
+      marginBottom: 16,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+  });
+}

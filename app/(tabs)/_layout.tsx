@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Plus, Target, Sparkles, Settings } from 'lucide-react-native';
-import { colors } from '@/src/theme/theme';
+import { ThemeColors } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 
 function TabIcon({
   Icon,
@@ -11,6 +13,9 @@ function TabIcon({
   Icon: typeof Home;
   focused: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <View style={[styles.iconWrap, focused && styles.iconActive]}>
       <Icon size={19} color={focused ? colors.teal[500] : colors.textMuted} />
@@ -21,6 +26,8 @@ function TabIcon({
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <Tabs
@@ -99,27 +106,29 @@ export default function TabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  iconWrap: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  iconActive: {
-    backgroundColor: colors.surfaceAlt,
-    shadowColor: colors.teal[500],
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  addHit: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addWrap: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    iconWrap: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
+    },
+    iconActive: {
+      backgroundColor: colors.surfaceAlt,
+      shadowColor: colors.teal[500],
+      shadowOpacity: 0.35,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 0 },
+    },
+    addHit: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    addWrap: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
+    },
+  });
+}

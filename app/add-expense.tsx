@@ -21,8 +21,9 @@ import {
   Card,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { formatMoney, formatShortDate, parseMoneyInput, todayISO } from '@/src/lib/format';
-import { colors, typography } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
 
 function toISODate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -40,6 +41,8 @@ function dateLabel(iso: string): string {
 export default function AddExpenseModal() {
   const router = useRouter();
   const { categories, settings, logExpense } = useDb();
+  const { colors, mode } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const currency = settings?.currency ?? 'RD$';
   const [amountRaw, setAmountRaw] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(categories[0]?.id ?? null);
@@ -146,7 +149,7 @@ export default function AddExpenseModal() {
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onDateChange}
               maximumDate={new Date()}
-              themeVariant="dark"
+              themeVariant={mode === 'light' ? 'light' : 'dark'}
             />
             {Platform.OS === 'ios' ? (
               <ButtonPrimary
@@ -168,81 +171,83 @@ export default function AddExpenseModal() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    flexGrow: 1,
-  },
-  topbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 18,
-  },
-  topTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 15,
-    color: colors.textPrimary,
-    letterSpacing: 0.2,
-  },
-  amountBlock: {
-    alignItems: 'center',
-    marginVertical: 14,
-    marginBottom: 26,
-  },
-  amountInput: {
-    fontFamily: typography.display,
-    fontSize: 40,
-    color: colors.teal[300],
-    textAlign: 'center',
-    minWidth: 180,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 20,
-  },
-  input: {
-    height: 38,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    color: colors.textPrimary,
-    paddingHorizontal: 12,
-    fontFamily: typography.ui,
-    fontSize: 13,
-    marginBottom: 16,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    height: 40,
-    paddingVertical: 0,
-    paddingHorizontal: 14,
-    marginBottom: 12,
-  },
-  dateText: {
-    fontFamily: typography.ui,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  pickerWrap: {
-    marginBottom: 16,
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-    paddingBottom: 8,
-  },
-  error: {
-    fontFamily: typography.ui,
-    fontSize: 12,
-    color: colors.coral[500],
-    marginBottom: 8,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 8,
+      flexGrow: 1,
+    },
+    topbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingBottom: 18,
+    },
+    topTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 15,
+      color: colors.textPrimary,
+      letterSpacing: 0.2,
+    },
+    amountBlock: {
+      alignItems: 'center',
+      marginVertical: 14,
+      marginBottom: 26,
+    },
+    amountInput: {
+      fontFamily: typography.display,
+      fontSize: 40,
+      color: colors.teal[300],
+      textAlign: 'center',
+      minWidth: 180,
+    },
+    chips: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 20,
+    },
+    input: {
+      height: 38,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.textPrimary,
+      paddingHorizontal: 12,
+      fontFamily: typography.ui,
+      fontSize: 13,
+      marginBottom: 16,
+    },
+    dateRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      height: 40,
+      paddingVertical: 0,
+      paddingHorizontal: 14,
+      marginBottom: 12,
+    },
+    dateText: {
+      fontFamily: typography.ui,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    pickerWrap: {
+      marginBottom: 16,
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+      paddingBottom: 8,
+    },
+    error: {
+      fontFamily: typography.ui,
+      fontSize: 12,
+      color: colors.coral[500],
+      marginBottom: 8,
+    },
+  });
+}

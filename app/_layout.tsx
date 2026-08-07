@@ -18,7 +18,8 @@ import {
 import * as SplashScreen from 'expo-splash-screen';
 import { DbProvider, useDb } from '@/src/hooks/DbProvider';
 import { OnboardingProvider } from '@/src/hooks/OnboardingContext';
-import { colors } from '@/src/theme/theme';
+import { ThemeProvider, useTheme } from '@/src/hooks/ThemeProvider';
+import { darkColors } from '@/src/theme/theme';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -26,6 +27,7 @@ SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 function RootNavigator() {
   const { ready, settings } = useDb();
+  const { colors, mode } = useTheme();
   const segments = useSegments();
   const router = useRouter();
 
@@ -49,7 +51,7 @@ function RootNavigator() {
 
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style={mode === 'light' ? 'dark' : 'light'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bgApp } }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="onboarding" />
@@ -82,16 +84,18 @@ export default function RootLayout() {
 
   if (!fontsLoaded) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bgApp }} />
+      <View style={{ flex: 1, backgroundColor: darkColors.bgApp }} />
     );
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <DbProvider>
-        <OnboardingProvider>
-          <RootNavigator />
-        </OnboardingProvider>
+        <ThemeProvider>
+          <OnboardingProvider>
+            <RootNavigator />
+          </OnboardingProvider>
+        </ThemeProvider>
       </DbProvider>
     </GestureHandlerRootView>
   );

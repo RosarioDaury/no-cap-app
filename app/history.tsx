@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
@@ -12,8 +13,9 @@ import {
   currentMonthKey,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { formatMoney } from '@/src/lib/format';
-import { colors, typography } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
 
 const MONTH_LONG = [
   'January',
@@ -39,6 +41,8 @@ function formatMonthTitle(month: string) {
 export default function HistoryScreen() {
   const router = useRouter();
   const { history, incomeHistory, settings, categories } = useDb();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const currency = settings?.currency ?? 'RD$';
   const totalCap = categories.reduce((sum, c) => sum + c.capCents, 0);
   const hasSpend = history.some((h) => h.totalCents > 0);
@@ -229,64 +233,66 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 },
-  topbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 14,
-    color: colors.textPrimary,
-    marginBottom: 4,
-  },
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 12,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  swatch: {
-    width: 10,
-    height: 10,
-    borderRadius: 3,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  rowTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  rowSub: {
-    fontFamily: typography.ui,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  rowValue: {
-    fontFamily: typography.display,
-    fontSize: 13,
-    color: colors.textPrimary,
-    marginLeft: 12,
-  },
-  rowMeta: {
-    fontFamily: typography.ui,
-    fontSize: 11,
-    color: colors.textSecondary,
-    textAlign: 'right',
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 },
+    topbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    cardTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 14,
+      color: colors.textPrimary,
+      marginBottom: 4,
+    },
+    legend: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 16,
+      marginBottom: 12,
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    swatch: {
+      width: 10,
+      height: 10,
+      borderRadius: 3,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    rowTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    rowSub: {
+      fontFamily: typography.ui,
+      fontSize: 11,
+      marginTop: 2,
+    },
+    rowValue: {
+      fontFamily: typography.display,
+      fontSize: 13,
+      color: colors.textPrimary,
+      marginLeft: 12,
+    },
+    rowMeta: {
+      fontFamily: typography.ui,
+      fontSize: 11,
+      color: colors.textSecondary,
+      textAlign: 'right',
+    },
+  });
+}

@@ -23,11 +23,12 @@ import {
   ButtonSecondary,
   RowIcon,
 } from '@/src/components';
-import { CategoryIcon, iconBg } from '@/src/components/CategoryIcon';
+import { CategoryIcon, useIconBg } from '@/src/components/CategoryIcon';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { Debt } from '@/src/db/types';
 import { formatMoney, formatShortDate, parseMoneyInput } from '@/src/lib/format';
-import { colors, typography } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
 
 type DebtDraft = {
   id?: string;
@@ -63,6 +64,9 @@ function paidProgress(d: Debt) {
 export default function DebtScreen() {
   const router = useRouter();
   const { debts, settings, saveDebt, removeDebt, payDebt } = useDb();
+  const { colors } = useTheme();
+  const iconBg = useIconBg();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const currency = settings?.currency ?? 'RD$';
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -376,115 +380,117 @@ export default function DebtScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 },
-  topbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  eyebrow: {
-    fontFamily: typography.uiBold,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 2,
-  },
-  total: {
-    fontFamily: typography.display,
-    fontSize: 28,
-    color: colors.textPrimary,
-  },
-  debtHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 9,
-  },
-  name: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  rowSub: {
-    fontFamily: typography.ui,
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 1,
-  },
-  pct: {
-    fontFamily: typography.display,
-    fontSize: 13,
-    color: colors.plum[500],
-  },
-  metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    gap: 8,
-  },
-  metaValue: {
-    fontFamily: typography.display,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  cardActions: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 12,
-  },
-  linkBtn: { paddingVertical: 2 },
-  linkText: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 12,
-    color: colors.plum[500],
-  },
-  tip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  sheetScroll: { flexGrow: 1, justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 36,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  label: {
-    fontFamily: typography.uiBold,
-    fontSize: 11,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 6,
-    marginTop: 4,
-  },
-  input: {
-    height: 42,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    color: colors.textPrimary,
-    paddingHorizontal: 12,
-    fontFamily: typography.ui,
-    fontSize: 13,
-    marginBottom: 10,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32 },
+    topbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    eyebrow: {
+      fontFamily: typography.uiBold,
+      fontSize: 10,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 2,
+    },
+    total: {
+      fontFamily: typography.display,
+      fontSize: 28,
+      color: colors.textPrimary,
+    },
+    debtHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 9,
+    },
+    name: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    rowSub: {
+      fontFamily: typography.ui,
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 1,
+    },
+    pct: {
+      fontFamily: typography.display,
+      fontSize: 13,
+      color: colors.plum[500],
+    },
+    metaRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 12,
+      gap: 8,
+    },
+    metaValue: {
+      fontFamily: typography.display,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    cardActions: {
+      flexDirection: 'row',
+      gap: 16,
+      marginTop: 12,
+    },
+    linkBtn: { paddingVertical: 2 },
+    linkText: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 12,
+      color: colors.plum[500],
+    },
+    tip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 9,
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      justifyContent: 'flex-end',
+    },
+    sheetScroll: { flexGrow: 1, justifyContent: 'flex-end' },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: 36,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    label: {
+      fontFamily: typography.uiBold,
+      fontSize: 11,
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 6,
+      marginTop: 4,
+    },
+    input: {
+      height: 42,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.textPrimary,
+      paddingHorizontal: 12,
+      fontFamily: typography.ui,
+      fontSize: 13,
+      marginBottom: 10,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 8,
+    },
+  });
+}

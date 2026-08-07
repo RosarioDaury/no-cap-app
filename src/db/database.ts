@@ -74,6 +74,11 @@ export async function initDatabase() {
     );
   }
 
+  const settingsCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(settings)');
+  if (!settingsCols.some((c) => c.name === 'theme')) {
+    await db.execAsync(`ALTER TABLE settings ADD COLUMN theme TEXT NOT NULL DEFAULT 'dark'`);
+  }
+
   return db;
 }
 

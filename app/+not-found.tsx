@@ -1,8 +1,13 @@
+import { useMemo } from 'react';
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, typography } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 
 export default function NotFoundScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <>
       <Stack.Screen options={{ title: 'Oops!', headerStyle: { backgroundColor: colors.bgApp }, headerTintColor: colors.textPrimary }} />
@@ -16,26 +21,28 @@ export default function NotFoundScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: colors.bgApp,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: typography.uiSemiBold,
-    color: colors.textPrimary,
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
-  },
-  linkText: {
-    fontSize: 14,
-    fontFamily: typography.ui,
-    color: colors.teal[500],
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 20,
+      backgroundColor: colors.bgApp,
+    },
+    title: {
+      fontSize: 18,
+      fontFamily: typography.uiSemiBold,
+      color: colors.textPrimary,
+    },
+    link: {
+      marginTop: 15,
+      paddingVertical: 15,
+    },
+    linkText: {
+      fontSize: 14,
+      fontFamily: typography.ui,
+      color: colors.teal[500],
+    },
+  });
+}

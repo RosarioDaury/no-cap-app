@@ -1,14 +1,18 @@
+import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Screen, Eyebrow, DisplayTitle, BodySm, Card } from '@/src/components';
 import { ButtonPrimary } from '@/src/components/Buttons';
 import { useOnboarding } from '@/src/hooks/OnboardingContext';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { BUDGET_TEMPLATES } from '@/src/db/database';
-import { colors, typography } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
 
 export default function TemplatesScreen() {
   const router = useRouter();
   const { templateId, setTemplateId } = useOnboarding();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const selected = BUDGET_TEMPLATES.find((t) => t.id === templateId) ?? BUDGET_TEMPLATES[0];
 
   return (
@@ -53,28 +57,30 @@ export default function TemplatesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 5,
-  },
-  title: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  badge: {
-    backgroundColor: colors.gold[50],
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  badgeText: {
-    fontFamily: typography.uiBold,
-    fontSize: 10,
-    color: colors.gold[700],
-    letterSpacing: 0.2,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 5,
+    },
+    title: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    badge: {
+      backgroundColor: colors.gold[50],
+      paddingHorizontal: 9,
+      paddingVertical: 3,
+      borderRadius: 10,
+    },
+    badgeText: {
+      fontFamily: typography.uiBold,
+      fontSize: 10,
+      color: colors.gold[700],
+      letterSpacing: 0.2,
+    },
+  });
+}

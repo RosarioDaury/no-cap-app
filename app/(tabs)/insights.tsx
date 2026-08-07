@@ -1,11 +1,13 @@
+import { useMemo } from 'react';
 import { View, Text, Pressable, TextInput, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Sparkles, MessageCircle, WifiOff } from 'lucide-react-native';
 import { Screen, Card, BodySm, DisplayTitle } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useAiAvailability } from '@/src/hooks/useAiAvailability';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { buildInsights } from '@/src/lib/insights';
-import { colors, typography, TintName, tintPalette } from '@/src/theme/theme';
+import { ThemeColors, TintName, typography } from '@/src/theme/theme';
 
 const toneMap: Record<string, TintName> = {
   coral: 'coral',
@@ -17,6 +19,8 @@ const toneMap: Record<string, TintName> = {
 export default function InsightsScreen() {
   const router = useRouter();
   const { categories, settings } = useDb();
+  const { colors, tintPalette } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { available, reason } = useAiAvailability();
   const currency = settings?.currency ?? 'RD$';
   const threshold = settings?.capAlertThreshold ?? 80;
@@ -104,75 +108,77 @@ export default function InsightsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 16,
-    flexGrow: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    marginBottom: 16,
-  },
-  eyebrow: {
-    fontFamily: typography.uiBold,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  actions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-  },
-  actionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionSep: {
-    color: colors.plum[500],
-    marginHorizontal: 6,
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-  },
-  actionLabel: {
-    color: colors.plum[500],
-    fontFamily: typography.uiSemiBold,
-  },
-  chatStub: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    height: 40,
-    paddingHorizontal: 13,
-    borderWidth: 0.5,
-    borderColor: colors.border,
-    borderRadius: 20,
-    marginTop: 14,
-    opacity: 0.7,
-  },
-  chatGate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minHeight: 40,
-    paddingHorizontal: 13,
-    paddingVertical: 10,
-    borderWidth: 0.5,
-    borderColor: colors.border,
-    borderRadius: 20,
-    marginTop: 14,
-  },
-  chatInput: {
-    flex: 1,
-    height: '100%',
-    color: colors.textPrimary,
-    fontFamily: typography.ui,
-    fontSize: 13,
-    padding: 0,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 8,
+      paddingBottom: 16,
+      flexGrow: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 7,
+      marginBottom: 16,
+    },
+    eyebrow: {
+      fontFamily: typography.uiBold,
+      fontSize: 10,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      marginBottom: 4,
+    },
+    actions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+    },
+    actionItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    actionSep: {
+      color: colors.plum[500],
+      marginHorizontal: 6,
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+    },
+    actionLabel: {
+      color: colors.plum[500],
+      fontFamily: typography.uiSemiBold,
+    },
+    chatStub: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      height: 40,
+      paddingHorizontal: 13,
+      borderWidth: 0.5,
+      borderColor: colors.border,
+      borderRadius: 20,
+      marginTop: 14,
+      opacity: 0.7,
+    },
+    chatGate: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      minHeight: 40,
+      paddingHorizontal: 13,
+      paddingVertical: 10,
+      borderWidth: 0.5,
+      borderColor: colors.border,
+      borderRadius: 20,
+      marginTop: 14,
+    },
+    chatInput: {
+      flex: 1,
+      height: '100%',
+      color: colors.textPrimary,
+      fontFamily: typography.ui,
+      fontSize: 13,
+      padding: 0,
+    },
+  });
+}

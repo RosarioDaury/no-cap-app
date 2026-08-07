@@ -24,13 +24,14 @@ import {
 } from '@/src/components';
 import {
   CategoryIcon,
-  iconBg,
+  useIconBg,
   CATEGORY_ICON_OPTIONS,
 } from '@/src/components/CategoryIcon';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 import { Goal } from '@/src/db/types';
 import { formatMoney, formatShortDate, parseMoneyInput } from '@/src/lib/format';
-import { colors, typography } from '@/src/theme/theme';
+import { ThemeColors, typography } from '@/src/theme/theme';
 
 type GoalDraft = {
   id?: string;
@@ -56,6 +57,9 @@ const emptyGoalDraft = (): GoalDraft => ({
 
 export default function GoalsScreen() {
   const { goals, categories, settings, saveGoal, removeGoal, contributeGoal } = useDb();
+  const { colors } = useTheme();
+  const iconBg = useIconBg();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const currency = settings?.currency ?? 'RD$';
   const totalCap = categories.reduce((s, c) => s + c.capCents, 0);
   const totalSpent = categories.reduce((s, c) => s + c.spentCents, 0);
@@ -334,125 +338,127 @@ export default function GoalsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 24,
-    flexGrow: 1,
-  },
-  topbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 18,
-  },
-  title: {
-    fontFamily: typography.displayMedium,
-    fontSize: 19,
-    color: colors.textPrimary,
-  },
-  goalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 9,
-  },
-  rowTitle: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  rowSub: {
-    fontFamily: typography.ui,
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 1,
-  },
-  pct: {
-    fontFamily: typography.display,
-    fontSize: 13,
-    color: colors.plum[500],
-  },
-  tip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-  },
-  cardActions: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 10,
-  },
-  linkBtn: {
-    paddingVertical: 2,
-  },
-  linkText: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 12,
-    color: colors.plum[500],
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  sheetScroll: {
-    flexGrow: 1,
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 36,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  label: {
-    fontFamily: typography.uiBold,
-    fontSize: 11,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 6,
-    marginTop: 4,
-  },
-  input: {
-    height: 42,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    color: colors.textPrimary,
-    paddingHorizontal: 12,
-    fontFamily: typography.ui,
-    fontSize: 13,
-    marginBottom: 10,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  iconChip: {
-    width: 36,
-    height: 36,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  iconChipActive: {
-    borderColor: colors.plum[500],
-    borderWidth: 2,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 8,
+      paddingBottom: 24,
+      flexGrow: 1,
+    },
+    topbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingBottom: 18,
+    },
+    title: {
+      fontFamily: typography.displayMedium,
+      fontSize: 19,
+      color: colors.textPrimary,
+    },
+    goalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 9,
+    },
+    rowTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    rowSub: {
+      fontFamily: typography.ui,
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 1,
+    },
+    pct: {
+      fontFamily: typography.display,
+      fontSize: 13,
+      color: colors.plum[500],
+    },
+    tip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 9,
+    },
+    cardActions: {
+      flexDirection: 'row',
+      gap: 16,
+      marginTop: 10,
+    },
+    linkBtn: {
+      paddingVertical: 2,
+    },
+    linkText: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 12,
+      color: colors.plum[500],
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      justifyContent: 'flex-end',
+    },
+    sheetScroll: {
+      flexGrow: 1,
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: 36,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    label: {
+      fontFamily: typography.uiBold,
+      fontSize: 11,
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 6,
+      marginTop: 4,
+    },
+    input: {
+      height: 42,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.textPrimary,
+      paddingHorizontal: 12,
+      fontFamily: typography.ui,
+      fontSize: 13,
+      marginBottom: 10,
+    },
+    chipRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 12,
+    },
+    iconChip: {
+      width: 36,
+      height: 36,
+      borderRadius: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    iconChipActive: {
+      borderColor: colors.plum[500],
+      borderWidth: 2,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 8,
+    },
+  });
+}

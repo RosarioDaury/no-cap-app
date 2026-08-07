@@ -1,14 +1,18 @@
+import { useMemo } from 'react';
 import { View, Text, TextInput, Switch, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Lock } from 'lucide-react-native';
 import { Screen, Eyebrow, DisplayTitle, BodySm, Card } from '@/src/components';
 import { ButtonPrimary } from '@/src/components/Buttons';
 import { useOnboarding } from '@/src/hooks/OnboardingContext';
-import { colors, typography } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
+import { ThemeColors, typography } from '@/src/theme/theme';
 
 export default function PermissionsScreen() {
   const router = useRouter();
   const { displayName, setDisplayName, aiConsent, setAiConsent } = useOnboarding();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const onContinue = () => {
     if (!displayName.trim()) {
@@ -89,42 +93,44 @@ export default function PermissionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  label: {
-    fontFamily: typography.uiBold,
-    fontSize: 11,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-    marginBottom: 6,
-  },
-  input: {
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    color: colors.textPrimary,
-    paddingHorizontal: 12,
-    fontFamily: typography.ui,
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  title: {
-    fontFamily: typography.uiSemiBold,
-    fontSize: 13,
-    color: colors.textPrimary,
-    marginBottom: 4,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: {
+      flexGrow: 1,
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+    },
+    label: {
+      fontFamily: typography.uiBold,
+      fontSize: 11,
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      color: colors.textMuted,
+      marginBottom: 6,
+    },
+    input: {
+      height: 44,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.textPrimary,
+      paddingHorizontal: 12,
+      fontFamily: typography.ui,
+      fontSize: 14,
+      marginBottom: 8,
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+    title: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
+      marginBottom: 4,
+    },
+  });
+}

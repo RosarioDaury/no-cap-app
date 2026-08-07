@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, radius, TintName, tintPalette } from '@/src/theme/theme';
+import { ThemeColors, TintName, radius } from '@/src/theme/theme';
+import { useTheme } from '@/src/hooks/ThemeProvider';
 
 type CardProps = {
   children: React.ReactNode;
@@ -17,6 +19,9 @@ const tintBorder: Record<TintName, string> = {
 };
 
 export function Card({ children, variant = 'default', tint = 'teal', style }: CardProps) {
+  const { colors, tintPalette } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   if (variant === 'flat') {
     return <View style={[styles.flat, style]}>{children}</View>;
   }
@@ -46,20 +51,22 @@ export function Card({ children, variant = 'default', tint = 'teal', style }: Ca
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    paddingHorizontal: 16,
-  },
-  flat: {
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    paddingHorizontal: 15,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    card: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+      paddingHorizontal: 16,
+    },
+    flat: {
+      backgroundColor: colors.surfaceAlt,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      paddingHorizontal: 15,
+    },
+  });
+}

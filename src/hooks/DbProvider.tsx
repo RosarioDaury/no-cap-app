@@ -102,6 +102,7 @@ type DbContextValue = {
     currency: string;
     aiConsent: number;
     capAlertThreshold: number;
+    theme: 'dark' | 'light';
   }>) => Promise<void>;
   /** Opt-in demo data. Pass force to replace goals/debts/transactions. */
   loadSampleData: (opts?: { force?: boolean }) => Promise<void>;
