@@ -33,7 +33,7 @@ const emptyAdd = (): AddDraft => ({ name: '', icon: 'heart', tint: 'teal' });
 
 export default function BudgetSetupScreen() {
   const router = useRouter();
-  const { templateId, aiConsent } = useOnboarding();
+  const { templateId, aiConsent, displayName } = useOnboarding();
   const { finishOnboarding } = useDb();
   const template = BUDGET_TEMPLATES.find((t) => t.id === templateId) ?? BUDGET_TEMPLATES[0];
 
@@ -60,6 +60,7 @@ export default function BudgetSetupScreen() {
       await finishOnboarding({
         aiConsent,
         templateId,
+        displayName: displayName.trim(),
         categories: cats.map((c) => ({
           name: c.name,
           icon: c.icon,

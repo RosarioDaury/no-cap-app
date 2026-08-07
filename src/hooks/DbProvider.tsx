@@ -60,6 +60,7 @@ type DbContextValue = {
   finishOnboarding: (opts: {
     aiConsent: boolean;
     templateId: string;
+    displayName?: string;
     categories?: { name: string; icon: string; tint: TintName; capCents: number }[];
   }) => Promise<void>;
   logExpense: (opts: {

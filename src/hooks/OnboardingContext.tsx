@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 
 type OnboardingState = {
+  displayName: string;
+  setDisplayName: (v: string) => void;
   aiConsent: boolean;
   setAiConsent: (v: boolean) => void;
   templateId: string;
@@ -10,11 +12,19 @@ type OnboardingState = {
 const OnboardingContext = createContext<OnboardingState | null>(null);
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
+  const [displayName, setDisplayName] = useState('');
   const [aiConsent, setAiConsent] = useState(false);
   const [templateId, setTemplateId] = useState('balanced');
   const value = useMemo(
-    () => ({ aiConsent, setAiConsent, templateId, setTemplateId }),
-    [aiConsent, templateId],
+    () => ({
+      displayName,
+      setDisplayName,
+      aiConsent,
+      setAiConsent,
+      templateId,
+      setTemplateId,
+    }),
+    [displayName, aiConsent, templateId],
   );
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
 }
