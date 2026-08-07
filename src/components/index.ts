@@ -7,3 +7,5 @@ export { ListRow, RowIcon } from './ListRow';
 export { QuickLogPanel } from './QuickLogPanel';
 export { ProgressBar, IconButton } from './ProgressBar';
 export { CategoryIcon, iconBg } from './CategoryIcon';
+export { MonthBarChart, formatMonthShort, currentMonthKey } from './MonthBarChart';
+export type { MonthBarPoint } from './MonthBarChart';

@@ -13,6 +13,8 @@ import {
   QuickLogPanel,
   EmptyState,
   SectionTitle,
+  MonthBarChart,
+  currentMonthKey,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { formatDisplayDate, formatMoney, progressRatio, tintForProgress } from '@/src/lib/format';
@@ -27,7 +29,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function HomeDashboard() {
   const router = useRouter();
-  const { settings, categories, debts, logExpense, refresh } = useDb();
+  const { settings, categories, debts, history, incomeHistory, logExpense, refresh } = useDb();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const currency = settings?.currency ?? 'RD$';
   const threshold = settings?.capAlertThreshold ?? 80;
@@ -54,6 +56,26 @@ export default function HomeDashboard() {
     const cards = buildInsights(categories, debts, currency);
     return cards.find((c) => c.id !== 'empty') ?? null;
   }, [categories, debts, currency]);
+
+  const hasTrendActivity = useMemo(
+    () =>
+      history.some((h) => h.totalCents > 0) || incomeHistory.some((h) => h.totalCents > 0),
+    [history, incomeHistory],
+  );
+
+  const spendPoints = useMemo(
+    () => history.map((h) => ({ month: h.month, valueCents: h.totalCents })),
+    [history],
+  );
+  const incomePoints = useMemo(
+    () => incomeHistory.map((h) => ({ month: h.month, valueCents: h.totalCents })),
+    [incomeHistory],
+  );
+
+  const thisMonth = currentMonthKey();
+  const thisMonthSpend = history.find((h) => h.month === thisMonth)?.totalCents ?? totalSpent;
+  const thisMonthIncome =
+    incomeHistory.find((h) => h.month === thisMonth)?.totalCents ?? 0;
 
   const toggle = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -98,6 +120,43 @@ export default function HomeDashboard() {
             </BodySm>
           </View>
         </Card>
+
+        {hasTrendActivity ? (
+          <Pressable
+            onPress={() => router.push('/history')}
+            style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Open history and trends"
+          >
+            <Card style={styles.trendsCard}>
+              <View style={styles.trendsHeader}>
+                <Text style={styles.trendsTitle}>Last 6 months</Text>
+                <BodySm style={{ color: colors.textMuted }}>See all</BodySm>
+              </View>
+              <MonthBarChart
+                primary={spendPoints}
+                secondary={incomePoints}
+                chartHeight={90}
+                colorForPrimary={(point) => {
+                  if (point.month === thisMonth) return colors.teal[700];
+                  if (point.valueCents > 0) return colors.teal[500];
+                  return colors.border;
+                }}
+                colorForSecondary={(point) => {
+                  if (point.month === thisMonth) return colors.gold[300];
+                  if (point.valueCents > 0) return colors.gold[500];
+                  return colors.border;
+                }}
+              />
+              <BodySm style={{ marginTop: 10, color: colors.textSecondary }}>
+                This month · {formatMoney(thisMonthSpend, currency)} spent
+                {thisMonthIncome > 0
+                  ? ` · ${formatMoney(thisMonthIncome, currency)} in`
+                  : ''}
+              </BodySm>
+            </Card>
+          </Pressable>
+        ) : null}
 
         <View style={styles.sectionHeader}>
           <SectionTitle style={{ marginBottom: 0 }}>Your caps</SectionTitle>
@@ -264,6 +323,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     marginBottom: 16,
+  },
+  trendsCard: {
+    marginBottom: 16,
+    paddingVertical: 14,
+  },
+  trendsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  trendsTitle: {
+    fontFamily: typography.uiSemiBold,
+    fontSize: 14,
+    color: colors.textPrimary,
   },
   roomAmount: {
     fontFamily: typography.display,

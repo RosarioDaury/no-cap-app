@@ -290,8 +290,8 @@ function monthKeyFromDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
-/** Last `months` calendar months (oldest → newest), including zeros. */
-export async function monthlyExpenseTotals(
+async function monthlyTotalsByType(
+  type: 'expense' | 'income',
   months = 6,
 ): Promise<{ month: string; totalCents: number }[]> {
   const db = await getDb();
@@ -307,12 +307,26 @@ export async function monthlyExpenseTotals(
   const rows = await db.getAllAsync<{ month: string; total: number }>(
     `SELECT substr(date, 1, 7) AS month, SUM(amount_cents) AS total
      FROM transactions
-     WHERE type = 'expense' AND date >= ? AND date <= ?
+     WHERE type = ? AND date >= ? AND date <= ?
      GROUP BY substr(date, 1, 7)`,
-    [start, end],
+    [type, start, end],
   );
   const byMonth = new Map(rows.map((r) => [r.month, r.total]));
   return keys.map((month) => ({ month, totalCents: byMonth.get(month) ?? 0 }));
+}
+
+/** Last `months` calendar months (oldest → newest), including zeros. */
+export async function monthlyExpenseTotals(
+  months = 6,
+): Promise<{ month: string; totalCents: number }[]> {
+  return monthlyTotalsByType('expense', months);
+}
+
+/** Last `months` calendar months of income (oldest → newest), including zeros. */
+export async function monthlyIncomeTotals(
+  months = 6,
+): Promise<{ month: string; totalCents: number }[]> {
+  return monthlyTotalsByType('income', months);
 }
 
 export async function listGoals(): Promise<Goal[]> {

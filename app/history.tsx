@@ -1,7 +1,6 @@
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import Svg, { Rect } from 'react-native-svg';
 import {
   Screen,
   DisplayTitle,
@@ -9,25 +8,13 @@ import {
   Card,
   IconButton,
   EmptyState,
+  MonthBarChart,
+  currentMonthKey,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { formatMoney } from '@/src/lib/format';
 import { colors, typography } from '@/src/theme/theme';
 
-const MONTH_SHORT = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
 const MONTH_LONG = [
   'January',
   'February',
@@ -43,43 +30,49 @@ const MONTH_LONG = [
   'December',
 ];
 
-function parseMonth(month: string) {
+function formatMonthTitle(month: string) {
   const year = Number(month.slice(0, 4));
   const index = Number(month.slice(5, 7)) - 1;
-  return { year, index };
-}
-
-function formatMonthTitle(month: string) {
-  const { year, index } = parseMonth(month);
   return `${MONTH_LONG[index]} ${year}`;
-}
-
-function formatMonthShort(month: string) {
-  return MONTH_SHORT[parseMonth(month).index];
-}
-
-function currentMonthKey() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const { history, settings, categories } = useDb();
+  const { history, incomeHistory, settings, categories } = useDb();
   const currency = settings?.currency ?? 'RD$';
   const totalCap = categories.reduce((sum, c) => sum + c.capCents, 0);
-  const hasActivity = history.some((h) => h.totalCents > 0);
+  const hasSpend = history.some((h) => h.totalCents > 0);
+  const hasIncome = incomeHistory.some((h) => h.totalCents > 0);
+  const hasActivity = hasSpend || hasIncome;
   const thisMonth = currentMonthKey();
-  const chartWidth = Dimensions.get('window').width - 72;
-  const barWidth = history.length ? (chartWidth - (history.length - 1) * 8) / history.length : 0;
 
-  const rows = [...history].reverse();
+  const spendPoints = history.map((h) => ({ month: h.month, valueCents: h.totalCents }));
+  const incomePoints = incomeHistory.map((h) => ({
+    month: h.month,
+    valueCents: h.totalCents,
+  }));
+  const incomeByMonth = new Map(incomeHistory.map((h) => [h.month, h.totalCents]));
+  const spendRows = [...history].reverse();
+  const incomeRows = [...incomeHistory].reverse();
+  const compareRows = [...history]
+    .map((h) => {
+      const income = incomeByMonth.get(h.month) ?? 0;
+      return { month: h.month, spend: h.totalCents, income, net: income - h.totalCents };
+    })
+    .reverse();
+
+  const spendColor = (point: { month: string; valueCents: number }) => {
+    const over = totalCap > 0 && point.valueCents > totalCap;
+    if (over) return colors.coral[300];
+    if (point.month === thisMonth) return colors.teal[700];
+    return colors.border;
+  };
 
   return (
     <Screen edges={['top']} padded={false}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topbar}>
-          <IconButton onPress={() => router.back()}>
+          <IconButton onPress={() => router.back()} accessibilityLabel="Go back">
             <ArrowLeft size={16} color={colors.textSecondary} />
           </IconButton>
           <DisplayTitle style={{ fontSize: 17 }}>History & trends</DisplayTitle>
@@ -87,89 +80,149 @@ export default function HistoryScreen() {
         </View>
 
         {!hasActivity ? (
-          <EmptyState title="No history yet" message="Expense totals by month will show up here." />
+          <EmptyState
+            title="No history yet"
+            message="Expense and income totals by month will show up here."
+          />
         ) : (
-          <Card>
-            <Text style={styles.cardTitle}>Monthly spend</Text>
-            <BodySm style={{ marginBottom: 16, textAlign: 'center' }}>
-              Spending as % of total cap, last {history.length} months
-            </BodySm>
-            <Svg width={chartWidth} height={140}>
-              {history.map((h, i) => {
-                const ratio = totalCap > 0 ? h.totalCents / totalCap : 0;
-                const height = Math.max(h.totalCents > 0 ? 8 : 4, Math.min(ratio, 1.35) * 110);
-                const x = i * (barWidth + 8);
-                const y = 130 - height;
-                const isCurrent = h.month === thisMonth;
-                const over = totalCap > 0 && h.totalCents > totalCap;
-                let fill = colors.border;
-                if (over) fill = colors.coral[300];
-                else if (isCurrent) fill = colors.teal[700];
-                else if (h.totalCents > 0) fill = colors.border;
-                return (
-                  <Rect
-                    key={h.month}
-                    x={x}
-                    y={y}
-                    width={barWidth}
-                    height={height}
-                    rx={5}
-                    fill={fill}
-                  />
-                );
-              })}
-            </Svg>
-            <View style={styles.labels}>
-              {history.map((h) => (
-                <Text
-                  key={h.month}
-                  style={[
-                    styles.label,
-                    { width: barWidth },
-                    h.month === thisMonth && styles.labelCurrent,
-                  ]}
-                >
-                  {formatMonthShort(h.month)}
-                </Text>
-              ))}
-            </View>
-            <View style={{ marginTop: 18, gap: 0 }}>
-              {rows.map((h) => {
-                const over = totalCap > 0 && h.totalCents > totalCap;
-                const under = totalCap > 0 && h.totalCents < totalCap;
-                const saved = totalCap - h.totalCents;
-                const isCurrent = h.month === thisMonth;
-                let status = 'No spend';
-                let statusColor = colors.textMuted;
-                if (isCurrent) {
-                  status = 'In progress';
-                  statusColor = colors.textMuted;
-                } else if (over) {
-                  status = 'Over cap';
-                  statusColor = colors.coral[500];
-                } else if (under && h.totalCents > 0) {
-                  status = `${formatMoney(saved, currency)} saved`;
-                  statusColor = colors.teal[700];
-                } else if (totalCap > 0 && h.totalCents === totalCap) {
-                  status = 'On cap';
-                  statusColor = colors.textSecondary;
-                }
-                return (
-                  <View key={`row-${h.month}`} style={styles.row}>
-                    <View style={{ flex: 1 }}>
+          <View style={{ gap: 14 }}>
+            {hasSpend ? (
+              <Card>
+                <Text style={styles.cardTitle}>Monthly spend</Text>
+                <BodySm style={{ marginBottom: 16, textAlign: 'center' }}>
+                  Spending as % of total cap, last {history.length} months
+                </BodySm>
+                <MonthBarChart
+                  primary={spendPoints}
+                  maxValue={totalCap > 0 ? totalCap : undefined}
+                  colorForPrimary={spendColor}
+                />
+                <View style={{ marginTop: 18 }}>
+                  {spendRows.map((h) => {
+                    const over = totalCap > 0 && h.totalCents > totalCap;
+                    const under = totalCap > 0 && h.totalCents < totalCap;
+                    const saved = totalCap - h.totalCents;
+                    const isCurrent = h.month === thisMonth;
+                    let status = 'No spend';
+                    let statusColor: string = colors.textMuted;
+                    if (isCurrent) {
+                      status = 'In progress';
+                      statusColor = colors.textMuted;
+                    } else if (over) {
+                      status = 'Over cap';
+                      statusColor = colors.coral[500];
+                    } else if (under && h.totalCents > 0) {
+                      status = `${formatMoney(saved, currency)} saved`;
+                      statusColor = colors.teal[700];
+                    } else if (totalCap > 0 && h.totalCents === totalCap) {
+                      status = 'On cap';
+                      statusColor = colors.textSecondary;
+                    }
+                    return (
+                      <View key={`spend-${h.month}`} style={styles.row}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.rowTitle}>{formatMonthTitle(h.month)}</Text>
+                          <Text style={[styles.rowSub, { color: statusColor }]}>{status}</Text>
+                        </View>
+                        <Text style={styles.rowValue}>
+                          {totalCap > 0
+                            ? `${formatMoney(h.totalCents, currency)} / ${formatMoney(totalCap, currency)}`
+                            : formatMoney(h.totalCents, currency)}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </Card>
+            ) : null}
+
+            {hasIncome ? (
+              <Card>
+                <Text style={styles.cardTitle}>Income</Text>
+                <BodySm style={{ marginBottom: 16, textAlign: 'center' }}>
+                  Monthly income, last {incomeHistory.length} months
+                </BodySm>
+                <MonthBarChart
+                  primary={incomePoints}
+                  colorForPrimary={(point) => {
+                    if (point.month === thisMonth) return colors.gold[300];
+                    if (point.valueCents > 0) return colors.gold[500];
+                    return colors.border;
+                  }}
+                />
+                <View style={{ marginTop: 18 }}>
+                  {incomeRows.map((h) => (
+                    <View key={`income-${h.month}`} style={styles.row}>
                       <Text style={styles.rowTitle}>{formatMonthTitle(h.month)}</Text>
-                      <Text style={[styles.rowSub, { color: statusColor }]}>{status}</Text>
+                      <Text style={styles.rowValue}>{formatMoney(h.totalCents, currency)}</Text>
                     </View>
-                    <Text style={styles.rowValue}>
-                      {totalCap > 0
-                        ? `${formatMoney(h.totalCents, currency)} / ${formatMoney(totalCap, currency)}`
-                        : formatMoney(h.totalCents, currency)}
-                    </Text>
+                  ))}
+                </View>
+              </Card>
+            ) : null}
+
+            {hasSpend && hasIncome ? (
+              <Card>
+                <Text style={styles.cardTitle}>Spend vs income</Text>
+                <BodySm style={{ marginBottom: 8, textAlign: 'center' }}>
+                  Teal spend · Gold income
+                </BodySm>
+                <View style={styles.legend}>
+                  <View style={styles.legendItem}>
+                    <View style={[styles.swatch, { backgroundColor: colors.teal[700] }]} />
+                    <BodySm>Spend</BodySm>
                   </View>
-                );
-              })}
-            </View>
-          </Card>
+                  <View style={styles.legendItem}>
+                    <View style={[styles.swatch, { backgroundColor: colors.gold[300] }]} />
+                    <BodySm>Income</BodySm>
+                  </View>
+                </View>
+                <MonthBarChart
+                  primary={spendPoints}
+                  secondary={incomePoints}
+                  colorForPrimary={(point) => {
+                    if (point.month === thisMonth) return colors.teal[700];
+                    if (point.valueCents > 0) return colors.teal[500];
+                    return colors.border;
+                  }}
+                  colorForSecondary={(point) => {
+                    if (point.month === thisMonth) return colors.gold[300];
+                    if (point.valueCents > 0) return colors.gold[500];
+                    return colors.border;
+                  }}
+                />
+                <View style={{ marginTop: 18 }}>
+                  {compareRows.map((row) => {
+                    const netPositive = row.net >= 0;
+                    return (
+                      <View key={`net-${row.month}`} style={styles.row}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.rowTitle}>{formatMonthTitle(row.month)}</Text>
+                          <Text
+                            style={[
+                              styles.rowSub,
+                              { color: netPositive ? colors.teal[700] : colors.coral[500] },
+                            ]}
+                          >
+                            Net {netPositive ? '+' : '−'}
+                            {formatMoney(Math.abs(row.net), currency)}
+                          </Text>
+                        </View>
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text style={styles.rowMeta}>
+                            {formatMoney(row.spend, currency)} spend
+                          </Text>
+                          <Text style={styles.rowMeta}>
+                            {formatMoney(row.income, currency)} in
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              </Card>
+            ) : null}
+          </View>
         )}
       </ScrollView>
     </Screen>
@@ -190,20 +243,21 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: 4,
   },
-  labels: {
+  legend: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
+    justifyContent: 'center',
+    gap: 16,
+    marginBottom: 12,
   },
-  label: {
-    fontFamily: typography.ui,
-    fontSize: 10,
-    color: colors.textMuted,
-    textAlign: 'center',
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  labelCurrent: {
-    color: colors.textPrimary,
-    fontFamily: typography.uiSemiBold,
+  swatch: {
+    width: 10,
+    height: 10,
+    borderRadius: 3,
   },
   row: {
     flexDirection: 'row',
@@ -228,5 +282,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textPrimary,
     marginLeft: 12,
+  },
+  rowMeta: {
+    fontFamily: typography.ui,
+    fontSize: 11,
+    color: colors.textSecondary,
+    textAlign: 'right',
   },
 });

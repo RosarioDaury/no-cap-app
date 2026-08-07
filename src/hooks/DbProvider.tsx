@@ -22,6 +22,7 @@ import {
   loadSampleData as seedSampleData,
   logDebtPayment,
   monthlyExpenseTotals,
+  monthlyIncomeTotals,
   resetAllData,
   updateDebt,
   updateGoal,
@@ -105,6 +106,7 @@ type DbContextValue = {
   loadSampleData: (opts?: { force?: boolean }) => Promise<void>;
   incomeTransactions: Awaited<ReturnType<typeof listTransactions>>;
   history: { month: string; totalCents: number }[];
+  incomeHistory: { month: string; totalCents: number }[];
 };
 
 const DbContext = createContext<DbContextValue | null>(null);
@@ -119,15 +121,17 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
     Awaited<ReturnType<typeof listTransactions>>
   >([]);
   const [history, setHistory] = useState<{ month: string; totalCents: number }[]>([]);
+  const [incomeHistory, setIncomeHistory] = useState<{ month: string; totalCents: number }[]>([]);
 
   const refresh = useCallback(async () => {
-    const [s, cats, g, d, income, hist] = await Promise.all([
+    const [s, cats, g, d, income, hist, incomeHist] = await Promise.all([
       getSettings(),
       getCategoriesWithSpend(),
       listGoals(),
       listDebts(),
       listTransactions({ type: 'income', limit: 50 }),
       monthlyExpenseTotals(6),
+      monthlyIncomeTotals(6),
     ]);
     setSettings(s);
     setCategories(cats);
@@ -135,6 +139,7 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
     setDebts(d);
     setIncomeTransactions(income);
     setHistory(hist);
+    setIncomeHistory(incomeHist);
   }, []);
 
   useEffect(() => {
@@ -272,8 +277,9 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
       },
       incomeTransactions,
       history,
+      incomeHistory,
     }),
-    [ready, settings, categories, goals, debts, refresh, incomeTransactions, history],
+    [ready, settings, categories, goals, debts, refresh, incomeTransactions, history, incomeHistory],
   );
 
   return <DbContext.Provider value={value}>{children}</DbContext.Provider>;
