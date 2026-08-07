@@ -15,9 +15,10 @@ const toneMap: Record<string, TintName> = {
 
 export default function InsightsScreen() {
   const router = useRouter();
-  const { categories, debts, settings } = useDb();
+  const { categories, settings } = useDb();
   const currency = settings?.currency ?? 'RD$';
-  const cards = buildInsights(categories, debts, currency);
+  const threshold = settings?.capAlertThreshold ?? 80;
+  const cards = buildInsights(categories, currency, threshold);
 
   return (
     <Screen edges={['top']} padded={false}>

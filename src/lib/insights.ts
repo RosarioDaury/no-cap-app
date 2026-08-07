@@ -1,5 +1,6 @@
-import { CategoryWithSpend, Debt } from '@/src/db/types';
-import { formatMoney } from '@/src/lib/format';
+import { CategoryWithSpend } from '@/src/db/types';
+import { capAlertLevel } from '@/src/lib/capAlerts';
+import { formatMoney, progressRatio } from '@/src/lib/format';
 
 export type InsightAction = {
   id: string;
@@ -15,66 +16,61 @@ export type InsightCard = {
   actions: InsightAction[];
 };
 
+/**
+ * Cap-limit alerts only (actual spend vs cap threshold).
+ * No pace projection or AI inference — those come later.
+ */
 export function buildInsights(
   categories: CategoryWithSpend[],
-  debts: Debt[],
   currency: string,
+  thresholdPct = 80,
 ): InsightCard[] {
-  const cards: InsightCard[] = [];
-  const day = new Date().getDate();
-  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-  const pace = day / daysInMonth;
+  const over: InsightCard[] = [];
+  const warning: InsightCard[] = [];
 
   for (const cat of categories) {
     if (cat.capCents <= 0) continue;
-    const expectedSpend = cat.capCents * pace;
-    const projected = pace > 0 ? cat.spentCents / pace : cat.spentCents;
-    const overBy = projected - cat.capCents;
-    if (overBy > cat.capCents * 0.05 && cat.spentCents > expectedSpend) {
-      cards.push({
+    const level = capAlertLevel(cat, thresholdPct);
+    if (level === 'ok') continue;
+
+    const pct = Math.round(progressRatio(cat.spentCents, cat.capCents) * 100);
+    const actions: InsightAction[] = [
+      { id: 'adjust-cap', label: 'Adjust cap', href: `/category/${cat.id}` },
+      { id: 'cap-alerts', label: 'Cap alerts', href: '/(tabs)/settings' },
+    ];
+
+    if (level === 'over') {
+      const overBy = cat.spentCents - cat.capCents;
+      over.push({
         id: `over-${cat.id}`,
         tone: 'coral',
-        eyebrow: 'Projected overspend',
-        body: `${cat.name} is on pace to close ~${formatMoney(Math.round(overBy), currency)} over cap, based on your pace so far this month.`,
-        actions: [
-          { id: 'adjust-cap', label: 'Adjust cap', href: `/category/${cat.id}` },
-          { id: 'cap-alerts', label: 'Cap alerts', href: '/(tabs)/settings' },
-        ],
+        eyebrow: 'Over cap',
+        body: `${cat.name} is ${formatMoney(overBy, currency)} over its ${formatMoney(cat.capCents, currency)} monthly cap (${formatMoney(cat.spentCents, currency)} spent).`,
+        actions,
       });
-    } else if (cat.spentCents < cat.capCents * 0.55 && pace > 0.4) {
-      cards.push({
-        id: `room-${cat.id}`,
-        tone: 'teal',
-        eyebrow: 'Consistent room',
-        body: `${cat.name} is tracking under cap — you have about ${formatMoney(cat.capCents - cat.spentCents, currency)} of room left.`,
-        actions: [{ id: 'goals', label: 'Move to a goal', href: '/(tabs)/goals' }],
+    } else {
+      const room = cat.capCents - cat.spentCents;
+      warning.push({
+        id: `warn-${cat.id}`,
+        tone: 'gold',
+        eyebrow: 'Cap alert',
+        body: `${cat.name} is at ${pct}% of its cap — ${formatMoney(cat.spentCents, currency)} of ${formatMoney(cat.capCents, currency)}, with ${formatMoney(room, currency)} left.`,
+        actions,
       });
     }
   }
 
-  for (const debt of debts) {
-    if (debt.paymentCents <= 0 || debt.balanceCents <= 0) continue;
-    const months = Math.ceil(debt.balanceCents / debt.paymentCents);
-    const boost = debt.paymentCents + 100000;
-    const faster = Math.ceil(debt.balanceCents / boost);
-    cards.push({
-      id: `debt-${debt.id}`,
-      tone: 'gold',
-      eyebrow: 'Debt payoff',
-      body: `At ${formatMoney(debt.paymentCents, currency)}/month, ${debt.name.toLowerCase()} clears in ${months} months. Adding ${formatMoney(100000, currency)} cuts that to ${faster}.`,
-      actions: [{ id: 'payoff', label: 'See payoff plan', href: '/debt' }],
-    });
-  }
+  const cards = [...over, ...warning].slice(0, 4);
 
   if (cards.length === 0) {
     cards.push({
       id: 'empty',
       tone: 'plum',
-      eyebrow: 'Getting started',
-      body: 'Log a few expenses and set caps — pattern insights show up once there is enough local data.',
-      actions: [{ id: 'log', label: 'Log a spend', href: '/add-expense' }],
+      eyebrow: 'No cap alerts',
+      body: 'You’re under your alert thresholds for now. Warnings show here when a category hits the % you set in Settings.',
+      actions: [{ id: 'settings', label: 'Cap alerts', href: '/(tabs)/settings' }],
     });
   }
 
-  return cards.slice(0, 4);
+  return cards;
 }

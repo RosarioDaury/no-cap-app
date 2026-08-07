@@ -29,7 +29,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function HomeDashboard() {
   const router = useRouter();
-  const { settings, categories, debts, history, incomeHistory, logExpense, refresh } = useDb();
+  const { settings, categories, history, incomeHistory, logExpense, refresh } = useDb();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const currency = settings?.currency ?? 'RD$';
   const threshold = settings?.capAlertThreshold ?? 80;
@@ -53,9 +53,9 @@ export default function HomeDashboard() {
   const warnCount = alertCats.length - overCount;
 
   const insightTeaser = useMemo(() => {
-    const cards = buildInsights(categories, debts, currency);
+    const cards = buildInsights(categories, currency, threshold);
     return cards.find((c) => c.id !== 'empty') ?? null;
-  }, [categories, debts, currency]);
+  }, [categories, currency, threshold]);
 
   const hasTrendActivity = useMemo(
     () =>
