@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemeColors, typography, spacing } from '@/src/theme/theme';
 import { useTheme } from '@/src/hooks/ThemeProvider';
+import { BrandMark } from '@/src/components/BrandMark';
 
 type ScreenProps = {
   children: React.ReactNode;
@@ -69,6 +70,7 @@ export function EmptyState({ title, message }: { title: string; message: string 
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.empty}>
+      <BrandMark size={36} />
       <Text style={styles.emptyTitle}>{title}</Text>
       <BodySm style={{ textAlign: 'center' }}>{message}</BodySm>
     </View>
@@ -114,7 +116,7 @@ function makeStyles(colors: ThemeColors) {
     empty: {
       paddingVertical: 40,
       alignItems: 'center',
-      gap: 8,
+      gap: 10,
     },
     emptyTitle: {
       fontFamily: typography.uiSemiBold,

@@ -1,56 +1,9 @@
 import { View, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import Svg, { Circle } from 'react-native-svg';
-import { Screen, DisplayTitle, BodySm } from '@/src/components';
+import { Screen, DisplayTitle, BodySm, BrandMark } from '@/src/components';
 import { ButtonPrimary, ButtonGhost } from '@/src/components/Buttons';
 import { useDb } from '@/src/hooks/DbProvider';
-import { useTheme } from '@/src/hooks/ThemeProvider';
 import { typography } from '@/src/theme/theme';
-
-function LogoRings() {
-  const { colors } = useTheme();
-
-  return (
-    <Svg width={120} height={46} style={{ marginBottom: 28 }}>
-      <Circle cx={23} cy={23} r={20} fill="none" stroke={colors.border} strokeWidth={3} />
-      <Circle
-        cx={23}
-        cy={23}
-        r={20}
-        fill="none"
-        stroke={colors.gold[300]}
-        strokeWidth={3}
-        strokeDasharray="65 126"
-        strokeLinecap="round"
-        transform="rotate(-90 23 23)"
-      />
-      <Circle cx={61} cy={23} r={20} fill="none" stroke={colors.border} strokeWidth={3} />
-      <Circle
-        cx={61}
-        cy={23}
-        r={20}
-        fill="none"
-        stroke={colors.teal[700]}
-        strokeWidth={3}
-        strokeDasharray="45 126"
-        strokeLinecap="round"
-        transform="rotate(-90 61 23)"
-      />
-      <Circle cx={97} cy={23} r={20} fill="none" stroke={colors.border} strokeWidth={3} />
-      <Circle
-        cx={97}
-        cy={23}
-        r={20}
-        fill="none"
-        stroke={colors.plum[500]}
-        strokeWidth={3}
-        strokeDasharray="90 126"
-        strokeLinecap="round"
-        transform="rotate(-90 97 23)"
-      />
-    </Svg>
-  );
-}
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -81,7 +34,7 @@ export default function WelcomeScreen() {
     <Screen style={styles.screen} edges={['top', 'bottom']}>
       <View />
       <View style={styles.center}>
-        <LogoRings />
+        <BrandMark size={88} />
         <DisplayTitle style={styles.brand}>NoCap</DisplayTitle>
         <BodySm style={styles.tagline}>budgeting, for real.</BodySm>
       </View>
@@ -105,6 +58,7 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 32,
     marginBottom: 8,
+    marginTop: 20,
     fontFamily: typography.display,
   },
   tagline: {

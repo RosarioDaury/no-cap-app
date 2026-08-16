@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Plus, Target, Sparkles, Settings } from 'lucide-react-native';
 import { ThemeColors } from '@/src/theme/theme';
 import { useTheme } from '@/src/hooks/ThemeProvider';
+import { BrandMark } from '@/src/components';
 
 function TabIcon({
   Icon,
@@ -34,6 +35,7 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
+        tabBarHideOnKeyboard: true,
         tabBarStyle: {
           backgroundColor: colors.bgApp,
           borderTopColor: colors.border,
@@ -50,7 +52,15 @@ export default function TabsLayout() {
         options={{
           title: 'Home',
           tabBarAccessibilityLabel: 'Home',
-          tabBarIcon: ({ focused }) => <TabIcon Icon={Home} focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <View style={[styles.iconWrap, focused && styles.iconActive]}>
+              <BrandMark
+                size={19}
+                mono
+                ink={focused ? colors.teal[500] : colors.textMuted}
+              />
+            </View>
+          ),
         }}
       />
       <Tabs.Screen

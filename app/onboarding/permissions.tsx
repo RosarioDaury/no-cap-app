@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { View, Text, TextInput, Switch, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, Switch, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Lock } from 'lucide-react-native';
-import { Screen, Eyebrow, DisplayTitle, BodySm, Card } from '@/src/components';
+import { Screen, Eyebrow, DisplayTitle, BodySm, Card, KeyboardFormScroll, BrandMark } from '@/src/components';
 import { ButtonPrimary } from '@/src/components/Buttons';
 import { useOnboarding } from '@/src/hooks/OnboardingContext';
 import { useTheme } from '@/src/hooks/ThemeProvider';
@@ -24,11 +24,9 @@ export default function PermissionsScreen() {
 
   return (
     <Screen edges={['top', 'bottom']} style={{ paddingTop: 20 }} padded={false}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Eyebrow>Step 1 of 3</Eyebrow>
+      <KeyboardFormScroll contentContainerStyle={styles.content}>
+        <BrandMark size={28} />
+        <Eyebrow style={{ marginTop: 14 }}>Step 1 of 3</Eyebrow>
         <DisplayTitle style={{ fontSize: 21, marginBottom: 6 }}>Your data, your call</DisplayTitle>
         <BodySm style={{ marginBottom: 22 }}>
           NoCap stores everything on this device only. Nothing leaves your phone unless you turn this
@@ -88,7 +86,7 @@ export default function PermissionsScreen() {
           disabled={!displayName.trim()}
           style={{ marginBottom: 10 }}
         />
-      </ScrollView>
+      </KeyboardFormScroll>
     </Screen>
   );
 }

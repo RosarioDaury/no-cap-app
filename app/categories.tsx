@@ -5,7 +5,6 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
-  Modal,
   Pressable,
   Alert,
 } from 'react-native';
@@ -21,6 +20,7 @@ import {
   ButtonPrimary,
   ButtonSecondary,
   RowIcon,
+  KeyboardSheet,
 } from '@/src/components';
 import {
   CategoryIcon,
@@ -178,76 +178,79 @@ export default function CategoriesScreen() {
         />
       </ScrollView>
 
-      <Modal visible={modalOpen} transparent animationType="slide">
-        <View style={styles.backdrop}>
-          <View style={styles.sheet}>
-            <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>{title}</DisplayTitle>
+      <KeyboardSheet
+        visible={modalOpen}
+        onRequestClose={() => {
+          setModalOpen(false);
+          setDraft(emptyDraft());
+        }}
+        scroll
+      >
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>{title}</DisplayTitle>
 
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              value={draft.name}
-              onChangeText={(name) => setDraft((d) => ({ ...d, name }))}
-              placeholder="e.g. Groceries"
-              placeholderTextColor={colors.textMuted}
-              style={styles.input}
-            />
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          value={draft.name}
+          onChangeText={(name) => setDraft((d) => ({ ...d, name }))}
+          placeholder="e.g. Groceries"
+          placeholderTextColor={colors.textMuted}
+          style={styles.input}
+        />
 
-            <Text style={styles.label}>Monthly cap</Text>
-            <TextInput
-              value={draft.capText}
-              onChangeText={(capText) => setDraft((d) => ({ ...d, capText }))}
-              placeholder={`${currency}0`}
-              placeholderTextColor={colors.textMuted}
-              keyboardType="decimal-pad"
-              style={styles.input}
-            />
+        <Text style={styles.label}>Monthly cap</Text>
+        <TextInput
+          value={draft.capText}
+          onChangeText={(capText) => setDraft((d) => ({ ...d, capText }))}
+          placeholder={`${currency}0`}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="decimal-pad"
+          style={styles.input}
+        />
 
-            <Text style={styles.label}>Icon</Text>
-            <View style={styles.chipRow}>
-              {CATEGORY_ICON_OPTIONS.map((icon) => (
-                <Pressable
-                  key={icon}
-                  onPress={() => setDraft((d) => ({ ...d, icon }))}
-                  style={[
-                    styles.iconChip,
-                    draft.icon === icon && styles.iconChipActive,
-                    { backgroundColor: iconBg(draft.tint) },
-                  ]}
-                >
-                  <CategoryIcon name={icon} tint={draft.tint} />
-                </Pressable>
-              ))}
-            </View>
-
-            <Text style={styles.label}>Color</Text>
-            <View style={styles.chipRow}>
-              {CATEGORY_TINT_OPTIONS.map((tint) => (
-                <Pressable
-                  key={tint}
-                  onPress={() => setDraft((d) => ({ ...d, tint }))}
-                  style={[
-                    styles.tintChip,
-                    { backgroundColor: tintPalette[tint][500] },
-                    draft.tint === tint && styles.tintChipActive,
-                  ]}
-                />
-              ))}
-            </View>
-
-            <View style={styles.actions}>
-              <ButtonSecondary
-                label="Cancel"
-                style={{ flex: 1 }}
-                onPress={() => {
-                  setModalOpen(false);
-                  setDraft(emptyDraft());
-                }}
-              />
-              <ButtonPrimary label="Save" loading={saving} style={{ flex: 1 }} onPress={onSave} />
-            </View>
-          </View>
+        <Text style={styles.label}>Icon</Text>
+        <View style={styles.chipRow}>
+          {CATEGORY_ICON_OPTIONS.map((icon) => (
+            <Pressable
+              key={icon}
+              onPress={() => setDraft((d) => ({ ...d, icon }))}
+              style={[
+                styles.iconChip,
+                draft.icon === icon && styles.iconChipActive,
+                { backgroundColor: iconBg(draft.tint) },
+              ]}
+            >
+              <CategoryIcon name={icon} tint={draft.tint} />
+            </Pressable>
+          ))}
         </View>
-      </Modal>
+
+        <Text style={styles.label}>Color</Text>
+        <View style={styles.chipRow}>
+          {CATEGORY_TINT_OPTIONS.map((tint) => (
+            <Pressable
+              key={tint}
+              onPress={() => setDraft((d) => ({ ...d, tint }))}
+              style={[
+                styles.tintChip,
+                { backgroundColor: tintPalette[tint][500] },
+                draft.tint === tint && styles.tintChipActive,
+              ]}
+            />
+          ))}
+        </View>
+
+        <View style={styles.actions}>
+          <ButtonSecondary
+            label="Cancel"
+            style={{ flex: 1 }}
+            onPress={() => {
+              setModalOpen(false);
+              setDraft(emptyDraft());
+            }}
+          />
+          <ButtonPrimary label="Save" loading={saving} style={{ flex: 1 }} onPress={onSave} />
+        </View>
+      </KeyboardSheet>
     </Screen>
   );
 }
@@ -284,20 +287,6 @@ function makeStyles(colors: ThemeColors) {
       fontSize: 11,
       color: colors.textMuted,
       marginTop: 1,
-    },
-    backdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.55)',
-      justifyContent: 'flex-end',
-    },
-    sheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-      paddingBottom: 36,
-      borderWidth: 1,
-      borderColor: colors.border,
     },
     label: {
       fontFamily: typography.uiBold,

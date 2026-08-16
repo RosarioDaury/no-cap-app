@@ -4,27 +4,29 @@
     "slug": "nocap",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/lid-off/app-icon-1024.png",
     "scheme": "nocap",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nocap.budget"
+      "bundleIdentifier": "com.nocap.budget",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0C0E11",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#161826",
+        "foregroundImage": "./assets/images/lid-off/app-icon-maskable-512.png"
       },
       "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "pan",
       "package": "com.nocap.budget"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/lid-off/favicon-32.png"
     },
     "plugins": [
       "expo-router",
@@ -33,9 +35,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "resizeMode": "contain",
-          "backgroundColor": "#0C0E11"
+          "image": "./assets/images/lid-off/mark-512-transparent.png",
+          "imageWidth": 128,
+          "backgroundColor": "#161826"
         }
       ],
       "@react-native-community/datetimepicker",
@@ -43,6 +45,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e9237cd0-5bdb-47d7-99d6-b97e5ad60f82"
+      }
     }
   }
 }

@@ -6,7 +6,6 @@ import {
   ScrollView,
   Alert,
   Switch,
-  Modal,
   TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -19,14 +18,13 @@ import {
   Upload,
   Moon,
   Sun,
-  Info,
   TrendingUp,
   Wallet,
   FlaskConical,
   User,
   RotateCcw,
 } from 'lucide-react-native';
-import { Screen, DisplayTitle, Eyebrow, ListRow } from '@/src/components';
+import { Screen, DisplayTitle, Eyebrow, ListRow, KeyboardSheet, BrandLockup, BrandMark } from '@/src/components';
 import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
@@ -189,7 +187,9 @@ export default function SettingsScreen() {
   return (
     <Screen edges={['top']} padded={false}>
       <ScrollView contentContainerStyle={styles.content}>
-        <DisplayTitle style={{ fontSize: 19, marginBottom: 16 }}>Settings</DisplayTitle>
+        <View style={{ marginBottom: 20 }}>
+          <BrandLockup size="md" />
+        </View>
 
         <Eyebrow>Budget</Eyebrow>
         <View style={{ marginBottom: 16 }}>
@@ -310,44 +310,42 @@ export default function SettingsScreen() {
             onPress={onPickTheme}
           />
           <ListRow
-            icon={<Info size={16} color={colors.textSecondary} />}
+            icon={<BrandMark size={18} />}
             title="About NoCap"
-            onPress={() => Alert.alert('NoCap', 'Offline-first budgeting. For real.')}
+            onPress={() =>
+              Alert.alert('NoCap', 'Offline-first budgeting. For real.\n\nYour caps, your device.')
+            }
             last
           />
         </View>
       </ScrollView>
 
-      <Modal visible={nameModal} transparent animationType="slide">
-        <View style={styles.backdrop}>
-          <View style={styles.sheet}>
-            <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Display name</DisplayTitle>
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              value={nameDraft}
-              onChangeText={setNameDraft}
-              placeholder="e.g. Alex"
-              placeholderTextColor={colors.textMuted}
-              autoFocus
-              autoCapitalize="words"
-              style={styles.input}
-            />
-            <View style={styles.actions}>
-              <ButtonSecondary
-                label="Cancel"
-                style={{ flex: 1 }}
-                onPress={() => setNameModal(false)}
-              />
-              <ButtonPrimary
-                label="Save"
-                loading={savingName}
-                style={{ flex: 1 }}
-                onPress={onSaveName}
-              />
-            </View>
-          </View>
+      <KeyboardSheet visible={nameModal} onRequestClose={() => setNameModal(false)}>
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Display name</DisplayTitle>
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          value={nameDraft}
+          onChangeText={setNameDraft}
+          placeholder="e.g. Alex"
+          placeholderTextColor={colors.textMuted}
+          autoFocus
+          autoCapitalize="words"
+          style={styles.input}
+        />
+        <View style={styles.actions}>
+          <ButtonSecondary
+            label="Cancel"
+            style={{ flex: 1 }}
+            onPress={() => setNameModal(false)}
+          />
+          <ButtonPrimary
+            label="Save"
+            loading={savingName}
+            style={{ flex: 1 }}
+            onPress={onSaveName}
+          />
         </View>
-      </Modal>
+      </KeyboardSheet>
     </Screen>
   );
 }
@@ -377,20 +375,6 @@ function makeStyles(colors: ThemeColors) {
       fontSize: 11,
       color: colors.textMuted,
       marginTop: 2,
-    },
-    backdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.55)',
-      justifyContent: 'flex-end',
-    },
-    sheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-      paddingBottom: 36,
-      borderWidth: 1,
-      borderColor: colors.border,
     },
     label: {
       fontFamily: typography.uiBold,

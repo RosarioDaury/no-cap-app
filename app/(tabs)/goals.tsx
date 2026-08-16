@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Modal,
   Alert,
 } from 'react-native';
 import { Lightbulb, Plus } from 'lucide-react-native';
@@ -21,6 +20,8 @@ import {
   ButtonPrimary,
   ButtonSecondary,
   RowIcon,
+  KeyboardSheet,
+  BrandMark,
 } from '@/src/components';
 import {
   CategoryIcon,
@@ -160,7 +161,10 @@ export default function GoalsScreen() {
     <Screen edges={['top']} padded={false}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topbar}>
-          <Text style={styles.title}>Goals</Text>
+          <View style={styles.brandTitle}>
+            <BrandMark size={22} />
+            <Text style={styles.title}>Goals</Text>
+          </View>
           <IconButton onPress={openCreate}>
             <Plus size={16} color={colors.textSecondary} />
           </IconButton>
@@ -222,118 +226,115 @@ export default function GoalsScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={goalModal} transparent animationType="slide">
-        <View style={styles.backdrop}>
-          <ScrollView contentContainerStyle={styles.sheetScroll} keyboardShouldPersistTaps="handled">
-            <View style={styles.sheet}>
-              <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>{modalTitle}</DisplayTitle>
+      <KeyboardSheet
+        visible={goalModal}
+        onRequestClose={() => {
+          setGoalModal(false);
+          setDraft(emptyGoalDraft());
+        }}
+        scroll
+      >
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>{modalTitle}</DisplayTitle>
 
-              <Text style={styles.label}>Name</Text>
-              <TextInput
-                value={draft.name}
-                onChangeText={(name) => setDraft((d) => ({ ...d, name }))}
-                placeholder="Emergency fund"
-                placeholderTextColor={colors.textMuted}
-                style={styles.input}
-              />
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          value={draft.name}
+          onChangeText={(name) => setDraft((d) => ({ ...d, name }))}
+          placeholder="Emergency fund"
+          placeholderTextColor={colors.textMuted}
+          style={styles.input}
+        />
 
-              <Text style={styles.label}>Target</Text>
-              <TextInput
-                value={draft.targetText}
-                onChangeText={(targetText) => setDraft((d) => ({ ...d, targetText }))}
-                placeholder={`${currency}0`}
-                placeholderTextColor={colors.textMuted}
-                keyboardType="decimal-pad"
-                style={styles.input}
-              />
+        <Text style={styles.label}>Target</Text>
+        <TextInput
+          value={draft.targetText}
+          onChangeText={(targetText) => setDraft((d) => ({ ...d, targetText }))}
+          placeholder={`${currency}0`}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="decimal-pad"
+          style={styles.input}
+        />
 
-              <Text style={styles.label}>Already saved</Text>
-              <TextInput
-                value={draft.savedText}
-                onChangeText={(savedText) => setDraft((d) => ({ ...d, savedText }))}
-                placeholder={`${currency}0`}
-                placeholderTextColor={colors.textMuted}
-                keyboardType="decimal-pad"
-                style={styles.input}
-              />
+        <Text style={styles.label}>Already saved</Text>
+        <TextInput
+          value={draft.savedText}
+          onChangeText={(savedText) => setDraft((d) => ({ ...d, savedText }))}
+          placeholder={`${currency}0`}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="decimal-pad"
+          style={styles.input}
+        />
 
-              <Text style={styles.label}>Due date (YYYY-MM-DD)</Text>
-              <TextInput
-                value={draft.dueDate}
-                onChangeText={(dueDate) => setDraft((d) => ({ ...d, dueDate }))}
-                placeholder="Optional"
-                placeholderTextColor={colors.textMuted}
-                autoCapitalize="none"
-                style={styles.input}
-              />
+        <Text style={styles.label}>Due date (YYYY-MM-DD)</Text>
+        <TextInput
+          value={draft.dueDate}
+          onChangeText={(dueDate) => setDraft((d) => ({ ...d, dueDate }))}
+          placeholder="Optional"
+          placeholderTextColor={colors.textMuted}
+          autoCapitalize="none"
+          style={styles.input}
+        />
 
-              <Text style={styles.label}>Icon</Text>
-              <View style={styles.chipRow}>
-                {CATEGORY_ICON_OPTIONS.map((icon) => (
-                  <Pressable
-                    key={icon}
-                    onPress={() => setDraft((d) => ({ ...d, icon }))}
-                    style={[
-                      styles.iconChip,
-                      draft.icon === icon && styles.iconChipActive,
-                      { backgroundColor: iconBg('plum') },
-                    ]}
-                  >
-                    <CategoryIcon name={icon} tint="plum" />
-                  </Pressable>
-                ))}
-              </View>
-
-              <View style={styles.actions}>
-                <ButtonSecondary
-                  label="Cancel"
-                  style={{ flex: 1 }}
-                  onPress={() => {
-                    setGoalModal(false);
-                    setDraft(emptyGoalDraft());
-                  }}
-                />
-                <ButtonPrimary label="Save" loading={saving} style={{ flex: 1 }} onPress={onSaveGoal} />
-              </View>
-            </View>
-          </ScrollView>
+        <Text style={styles.label}>Icon</Text>
+        <View style={styles.chipRow}>
+          {CATEGORY_ICON_OPTIONS.map((icon) => (
+            <Pressable
+              key={icon}
+              onPress={() => setDraft((d) => ({ ...d, icon }))}
+              style={[
+                styles.iconChip,
+                draft.icon === icon && styles.iconChipActive,
+                { backgroundColor: iconBg('plum') },
+              ]}
+            >
+              <CategoryIcon name={icon} tint="plum" />
+            </Pressable>
+          ))}
         </View>
-      </Modal>
 
-      <Modal visible={!!contribute} transparent animationType="slide">
-        <View style={styles.backdrop}>
-          <View style={styles.sheet}>
-            <DisplayTitle style={{ fontSize: 18, marginBottom: 8 }}>Contribute</DisplayTitle>
-            <BodySm style={{ marginBottom: 12 }}>
-              Add to {contribute?.goal.name ?? 'goal'}
-            </BodySm>
-            <TextInput
-              value={contribute?.amountText ?? ''}
-              onChangeText={(amountText) =>
-                setContribute((c) => (c ? { ...c, amountText } : c))
-              }
-              placeholder={`${currency}0`}
-              placeholderTextColor={colors.textMuted}
-              keyboardType="decimal-pad"
-              style={styles.input}
-              autoFocus
-            />
-            <View style={styles.actions}>
-              <ButtonSecondary
-                label="Cancel"
-                style={{ flex: 1 }}
-                onPress={() => setContribute(null)}
-              />
-              <ButtonPrimary
-                label="Add"
-                loading={contributing}
-                style={{ flex: 1 }}
-                onPress={onContribute}
-              />
-            </View>
-          </View>
+        <View style={styles.actions}>
+          <ButtonSecondary
+            label="Cancel"
+            style={{ flex: 1 }}
+            onPress={() => {
+              setGoalModal(false);
+              setDraft(emptyGoalDraft());
+            }}
+          />
+          <ButtonPrimary label="Save" loading={saving} style={{ flex: 1 }} onPress={onSaveGoal} />
         </View>
-      </Modal>
+      </KeyboardSheet>
+
+      <KeyboardSheet visible={!!contribute} onRequestClose={() => setContribute(null)}>
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 8 }}>Contribute</DisplayTitle>
+        <BodySm style={{ marginBottom: 12 }}>
+          Add to {contribute?.goal.name ?? 'goal'}
+        </BodySm>
+        <TextInput
+          value={contribute?.amountText ?? ''}
+          onChangeText={(amountText) =>
+            setContribute((c) => (c ? { ...c, amountText } : c))
+          }
+          placeholder={`${currency}0`}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="decimal-pad"
+          style={styles.input}
+          autoFocus
+        />
+        <View style={styles.actions}>
+          <ButtonSecondary
+            label="Cancel"
+            style={{ flex: 1 }}
+            onPress={() => setContribute(null)}
+          />
+          <ButtonPrimary
+            label="Add"
+            loading={contributing}
+            style={{ flex: 1 }}
+            onPress={onContribute}
+          />
+        </View>
+      </KeyboardSheet>
     </Screen>
   );
 }
@@ -351,6 +352,11 @@ function makeStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingBottom: 18,
+    },
+    brandTitle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     title: {
       fontFamily: typography.displayMedium,
@@ -396,24 +402,6 @@ function makeStyles(colors: ThemeColors) {
       fontFamily: typography.uiSemiBold,
       fontSize: 12,
       color: colors.plum[500],
-    },
-    backdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.55)',
-      justifyContent: 'flex-end',
-    },
-    sheetScroll: {
-      flexGrow: 1,
-      justifyContent: 'flex-end',
-    },
-    sheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-      paddingBottom: 36,
-      borderWidth: 1,
-      borderColor: colors.border,
     },
     label: {
       fontFamily: typography.uiBold,

@@ -4,11 +4,9 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  ScrollView,
   LayoutAnimation,
   Platform,
   UIManager,
-  Modal,
   Alert,
   Pressable,
 } from 'react-native';
@@ -28,6 +26,8 @@ import {
   ButtonPrimary,
   ButtonSecondary,
   Chip,
+  KeyboardSheet,
+  KeyboardFormScroll,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
@@ -191,7 +191,7 @@ export default function CategoryDetailScreen() {
 
   return (
     <Screen edges={['top']} padded={false}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <KeyboardFormScroll contentContainerStyle={styles.content}>
         <View style={styles.topbar}>
           <IconButton onPress={() => router.back()}>
             <ArrowLeft size={16} color={colors.textSecondary} />
@@ -259,99 +259,89 @@ export default function CategoryDetailScreen() {
         )}
 
         <ButtonSecondary label="Edit cap" onPress={openEditCap} style={{ marginTop: 20 }} />
-      </ScrollView>
+      </KeyboardFormScroll>
 
-      <Modal visible={capModal} transparent animationType="slide">
-        <View style={styles.backdrop}>
-          <View style={styles.sheet}>
-            <DisplayTitle style={{ fontSize: 18, marginBottom: 8 }}>Edit cap</DisplayTitle>
-            <BodySm style={{ marginBottom: 12 }}>Monthly limit for {name}</BodySm>
-            <TextInput
-              value={capText}
-              onChangeText={setCapText}
-              placeholder={`${currency}0`}
-              placeholderTextColor={colors.textMuted}
-              keyboardType="decimal-pad"
-              style={styles.input}
-              autoFocus
+      <KeyboardSheet visible={capModal} onRequestClose={() => setCapModal(false)}>
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 8 }}>Edit cap</DisplayTitle>
+        <BodySm style={{ marginBottom: 12 }}>Monthly limit for {name}</BodySm>
+        <TextInput
+          value={capText}
+          onChangeText={setCapText}
+          placeholder={`${currency}0`}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="decimal-pad"
+          style={styles.input}
+          autoFocus
+        />
+        <View style={styles.actions}>
+          <ButtonSecondary
+            label="Cancel"
+            style={{ flex: 1 }}
+            onPress={() => setCapModal(false)}
+          />
+          <ButtonPrimary label="Save" loading={savingCap} style={{ flex: 1 }} onPress={saveCap} />
+        </View>
+      </KeyboardSheet>
+
+      <KeyboardSheet visible={!!edit} onRequestClose={() => setEdit(null)} scroll>
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Edit expense</DisplayTitle>
+
+        <Text style={styles.label}>Amount</Text>
+        <TextInput
+          value={edit?.amountText ?? ''}
+          onChangeText={(amountText) => setEdit((e) => (e ? { ...e, amountText } : e))}
+          placeholder={`${currency}0`}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="decimal-pad"
+          style={styles.input}
+        />
+
+        <Text style={styles.label}>Note</Text>
+        <TextInput
+          value={edit?.note ?? ''}
+          onChangeText={(note) => setEdit((e) => (e ? { ...e, note } : e))}
+          placeholder="Optional"
+          placeholderTextColor={colors.textMuted}
+          style={styles.input}
+        />
+
+        <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
+        <TextInput
+          value={edit?.date ?? ''}
+          onChangeText={(date) => setEdit((e) => (e ? { ...e, date } : e))}
+          placeholder="YYYY-MM-DD"
+          placeholderTextColor={colors.textMuted}
+          autoCapitalize="none"
+          style={styles.input}
+        />
+
+        <Text style={styles.label}>Category</Text>
+        <View style={styles.chips}>
+          {categories.map((c) => (
+            <Chip
+              key={c.id}
+              label={c.name.split(' ')[0]}
+              selected={edit?.categoryId === c.id}
+              onPress={() => setEdit((e) => (e ? { ...e, categoryId: c.id } : e))}
             />
-            <View style={styles.actions}>
-              <ButtonSecondary
-                label="Cancel"
-                style={{ flex: 1 }}
-                onPress={() => setCapModal(false)}
-              />
-              <ButtonPrimary label="Save" loading={savingCap} style={{ flex: 1 }} onPress={saveCap} />
-            </View>
-          </View>
+          ))}
         </View>
-      </Modal>
 
-      <Modal visible={!!edit} transparent animationType="slide">
-        <View style={styles.backdrop}>
-          <ScrollView contentContainerStyle={styles.sheetScroll} keyboardShouldPersistTaps="handled">
-            <View style={styles.sheet}>
-              <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Edit expense</DisplayTitle>
-
-              <Text style={styles.label}>Amount</Text>
-              <TextInput
-                value={edit?.amountText ?? ''}
-                onChangeText={(amountText) => setEdit((e) => (e ? { ...e, amountText } : e))}
-                placeholder={`${currency}0`}
-                placeholderTextColor={colors.textMuted}
-                keyboardType="decimal-pad"
-                style={styles.input}
-              />
-
-              <Text style={styles.label}>Note</Text>
-              <TextInput
-                value={edit?.note ?? ''}
-                onChangeText={(note) => setEdit((e) => (e ? { ...e, note } : e))}
-                placeholder="Optional"
-                placeholderTextColor={colors.textMuted}
-                style={styles.input}
-              />
-
-              <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-              <TextInput
-                value={edit?.date ?? ''}
-                onChangeText={(date) => setEdit((e) => (e ? { ...e, date } : e))}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={colors.textMuted}
-                autoCapitalize="none"
-                style={styles.input}
-              />
-
-              <Text style={styles.label}>Category</Text>
-              <View style={styles.chips}>
-                {categories.map((c) => (
-                  <Chip
-                    key={c.id}
-                    label={c.name.split(' ')[0]}
-                    selected={edit?.categoryId === c.id}
-                    onPress={() => setEdit((e) => (e ? { ...e, categoryId: c.id } : e))}
-                  />
-                ))}
-              </View>
-
-              <View style={styles.actions}>
-                <ButtonSecondary label="Delete" style={{ flex: 1 }} onPress={onDeleteTxn} />
-                <ButtonPrimary
-                  label="Save"
-                  loading={savingTxn}
-                  style={{ flex: 1 }}
-                  onPress={onSaveTxn}
-                />
-              </View>
-              <ButtonSecondary
-                label="Cancel"
-                style={{ marginTop: 8 }}
-                onPress={() => setEdit(null)}
-              />
-            </View>
-          </ScrollView>
+        <View style={styles.actions}>
+          <ButtonSecondary label="Delete" style={{ flex: 1 }} onPress={onDeleteTxn} />
+          <ButtonPrimary
+            label="Save"
+            loading={savingTxn}
+            style={{ flex: 1 }}
+            onPress={onSaveTxn}
+          />
         </View>
-      </Modal>
+        <ButtonSecondary
+          label="Cancel"
+          style={{ marginTop: 8 }}
+          onPress={() => setEdit(null)}
+        />
+      </KeyboardSheet>
     </Screen>
   );
 }
@@ -405,21 +395,6 @@ function makeStyles(colors: ThemeColors) {
       fontFamily: typography.display,
       fontSize: 13,
       color: colors.textPrimary,
-    },
-    backdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.55)',
-      justifyContent: 'flex-end',
-    },
-    sheetScroll: { flexGrow: 1, justifyContent: 'flex-end' },
-    sheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-      paddingBottom: 36,
-      borderWidth: 1,
-      borderColor: colors.border,
     },
     label: {
       fontFamily: typography.uiBold,

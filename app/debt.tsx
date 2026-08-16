@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Modal,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -22,6 +21,7 @@ import {
   ButtonPrimary,
   ButtonSecondary,
   RowIcon,
+  KeyboardSheet,
 } from '@/src/components';
 import { CategoryIcon, useIconBg } from '@/src/components/CategoryIcon';
 import { useDb } from '@/src/hooks/DbProvider';
@@ -291,91 +291,88 @@ export default function DebtScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={modalOpen} transparent animationType="slide">
-        <View style={styles.backdrop}>
-          <ScrollView contentContainerStyle={styles.sheetScroll} keyboardShouldPersistTaps="handled">
-            <View style={styles.sheet}>
-              <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>{modalTitle}</DisplayTitle>
+      <KeyboardSheet
+        visible={modalOpen}
+        onRequestClose={() => {
+          setModalOpen(false);
+          setDraft(emptyDraft());
+        }}
+        scroll
+      >
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>{modalTitle}</DisplayTitle>
 
-              <Text style={styles.label}>Name</Text>
-              <TextInput
-                value={draft.name}
-                onChangeText={(name) => setDraft((d) => ({ ...d, name }))}
-                placeholder="Credit card"
-                placeholderTextColor={colors.textMuted}
-                style={styles.input}
-              />
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          value={draft.name}
+          onChangeText={(name) => setDraft((d) => ({ ...d, name }))}
+          placeholder="Credit card"
+          placeholderTextColor={colors.textMuted}
+          style={styles.input}
+        />
 
-              <Text style={styles.label}>Balance remaining</Text>
-              <TextInput
-                value={draft.balanceText}
-                onChangeText={(balanceText) => setDraft((d) => ({ ...d, balanceText }))}
-                placeholder={`${currency}0`}
-                placeholderTextColor={colors.textMuted}
-                keyboardType="decimal-pad"
-                style={styles.input}
-              />
+        <Text style={styles.label}>Balance remaining</Text>
+        <TextInput
+          value={draft.balanceText}
+          onChangeText={(balanceText) => setDraft((d) => ({ ...d, balanceText }))}
+          placeholder={`${currency}0`}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="decimal-pad"
+          style={styles.input}
+        />
 
-              <Text style={styles.label}>Monthly payment</Text>
-              <TextInput
-                value={draft.paymentText}
-                onChangeText={(paymentText) => setDraft((d) => ({ ...d, paymentText }))}
-                placeholder={`${currency}0`}
-                placeholderTextColor={colors.textMuted}
-                keyboardType="decimal-pad"
-                style={styles.input}
-              />
+        <Text style={styles.label}>Monthly payment</Text>
+        <TextInput
+          value={draft.paymentText}
+          onChangeText={(paymentText) => setDraft((d) => ({ ...d, paymentText }))}
+          placeholder={`${currency}0`}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="decimal-pad"
+          style={styles.input}
+        />
 
-              <Text style={styles.label}>Due date (YYYY-MM-DD)</Text>
-              <TextInput
-                value={draft.dueDate}
-                onChangeText={(dueDate) => setDraft((d) => ({ ...d, dueDate }))}
-                placeholder="Optional"
-                placeholderTextColor={colors.textMuted}
-                autoCapitalize="none"
-                style={styles.input}
-              />
+        <Text style={styles.label}>Due date (YYYY-MM-DD)</Text>
+        <TextInput
+          value={draft.dueDate}
+          onChangeText={(dueDate) => setDraft((d) => ({ ...d, dueDate }))}
+          placeholder="Optional"
+          placeholderTextColor={colors.textMuted}
+          autoCapitalize="none"
+          style={styles.input}
+        />
 
-              <View style={styles.actions}>
-                <ButtonSecondary
-                  label="Cancel"
-                  style={{ flex: 1 }}
-                  onPress={() => {
-                    setModalOpen(false);
-                    setDraft(emptyDraft());
-                  }}
-                />
-                <ButtonPrimary label="Save" loading={saving} style={{ flex: 1 }} onPress={onSave} />
-              </View>
-            </View>
-          </ScrollView>
+        <View style={styles.actions}>
+          <ButtonSecondary
+            label="Cancel"
+            style={{ flex: 1 }}
+            onPress={() => {
+              setModalOpen(false);
+              setDraft(emptyDraft());
+            }}
+          />
+          <ButtonPrimary label="Save" loading={saving} style={{ flex: 1 }} onPress={onSave} />
         </View>
-      </Modal>
+      </KeyboardSheet>
 
-      <Modal visible={!!pay} transparent animationType="slide">
-        <View style={styles.backdrop}>
-          <View style={styles.sheet}>
-            <DisplayTitle style={{ fontSize: 18, marginBottom: 8 }}>Log payment</DisplayTitle>
-            <BodySm style={{ marginBottom: 12 }}>
-              Toward {pay?.debt.name ?? 'debt'} · balance{' '}
-              {pay ? formatMoney(pay.debt.balanceCents, currency) : ''}
-            </BodySm>
-            <TextInput
-              value={pay?.amountText ?? ''}
-              onChangeText={(amountText) => setPay((p) => (p ? { ...p, amountText } : p))}
-              placeholder={`${currency}0`}
-              placeholderTextColor={colors.textMuted}
-              keyboardType="decimal-pad"
-              style={styles.input}
-              autoFocus
-            />
-            <View style={styles.actions}>
-              <ButtonSecondary label="Cancel" style={{ flex: 1 }} onPress={() => setPay(null)} />
-              <ButtonPrimary label="Apply" loading={paying} style={{ flex: 1 }} onPress={onPay} />
-            </View>
-          </View>
+      <KeyboardSheet visible={!!pay} onRequestClose={() => setPay(null)}>
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 8 }}>Log payment</DisplayTitle>
+        <BodySm style={{ marginBottom: 12 }}>
+          Toward {pay?.debt.name ?? 'debt'} · balance{' '}
+          {pay ? formatMoney(pay.debt.balanceCents, currency) : ''}
+        </BodySm>
+        <TextInput
+          value={pay?.amountText ?? ''}
+          onChangeText={(amountText) => setPay((p) => (p ? { ...p, amountText } : p))}
+          placeholder={`${currency}0`}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="decimal-pad"
+          style={styles.input}
+          autoFocus
+        />
+        <View style={styles.actions}>
+          <ButtonSecondary label="Cancel" style={{ flex: 1 }} onPress={() => setPay(null)} />
+          <ButtonPrimary label="Apply" loading={paying} style={{ flex: 1 }} onPress={onPay} />
         </View>
-      </Modal>
+      </KeyboardSheet>
     </Screen>
   );
 }
@@ -450,21 +447,6 @@ function makeStyles(colors: ThemeColors) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 9,
-    },
-    backdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.55)',
-      justifyContent: 'flex-end',
-    },
-    sheetScroll: { flexGrow: 1, justifyContent: 'flex-end' },
-    sheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-      paddingBottom: 36,
-      borderWidth: 1,
-      borderColor: colors.border,
     },
     label: {
       fontFamily: typography.uiBold,

@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Modal, ScrollView } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Plus, Trash2 } from 'lucide-react-native';
-import { Screen, Eyebrow, DisplayTitle, BodySm, Card, RowIcon } from '@/src/components';
+import { Screen, Eyebrow, DisplayTitle, BodySm, Card, RowIcon, KeyboardSheet, KeyboardFormScroll, BrandMark } from '@/src/components';
 import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
 import {
   CategoryIcon,
@@ -80,8 +80,9 @@ export default function BudgetSetupScreen() {
 
   return (
     <Screen edges={['top', 'bottom']} style={{ paddingTop: 20 }} padded={false}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, flexGrow: 1 }}>
-        <Eyebrow>Step 3 of 3</Eyebrow>
+      <KeyboardFormScroll contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, flexGrow: 1 }}>
+        <BrandMark size={28} />
+        <Eyebrow style={{ marginTop: 14 }}>Step 3 of 3</Eyebrow>
         <DisplayTitle style={{ fontSize: 21, marginBottom: 6 }}>Set your caps</DisplayTitle>
         <BodySm style={{ marginBottom: 18 }}>
           Add a category and a monthly cap. One amount per category — ranged caps are not used in v1.
@@ -136,85 +137,88 @@ export default function BudgetSetupScreen() {
           disabled={!canContinue}
           style={{ marginTop: 16 }}
         />
-      </ScrollView>
+      </KeyboardFormScroll>
 
-      <Modal visible={modalOpen} transparent animationType="slide">
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalSheet}>
-            <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Add category</DisplayTitle>
+      <KeyboardSheet
+        visible={modalOpen}
+        onRequestClose={() => {
+          setModalOpen(false);
+          setAddDraft(emptyAdd());
+        }}
+        scroll
+      >
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Add category</DisplayTitle>
 
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              value={addDraft.name}
-              onChangeText={(name) => setAddDraft((d) => ({ ...d, name }))}
-              placeholder="Category name"
-              placeholderTextColor={colors.textMuted}
-              style={styles.modalInput}
-            />
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          value={addDraft.name}
+          onChangeText={(name) => setAddDraft((d) => ({ ...d, name }))}
+          placeholder="Category name"
+          placeholderTextColor={colors.textMuted}
+          style={styles.modalInput}
+        />
 
-            <Text style={styles.label}>Icon</Text>
-            <View style={styles.chipRow}>
-              {CATEGORY_ICON_OPTIONS.map((icon) => (
-                <Pressable
-                  key={icon}
-                  onPress={() => setAddDraft((d) => ({ ...d, icon }))}
-                  style={[
-                    styles.iconChip,
-                    addDraft.icon === icon && styles.iconChipActive,
-                    { backgroundColor: iconBg(addDraft.tint) },
-                  ]}
-                >
-                  <CategoryIcon name={icon} tint={addDraft.tint} />
-                </Pressable>
-              ))}
-            </View>
-
-            <Text style={styles.label}>Color</Text>
-            <View style={styles.chipRow}>
-              {CATEGORY_TINT_OPTIONS.map((tint) => (
-                <Pressable
-                  key={tint}
-                  onPress={() => setAddDraft((d) => ({ ...d, tint }))}
-                  style={[
-                    styles.tintChip,
-                    { backgroundColor: tintPalette[tint][500] },
-                    addDraft.tint === tint && styles.tintChipActive,
-                  ]}
-                />
-              ))}
-            </View>
-
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
-              <ButtonSecondary
-                label="Cancel"
-                onPress={() => {
-                  setModalOpen(false);
-                  setAddDraft(emptyAdd());
-                }}
-                style={{ flex: 1 }}
-              />
-              <ButtonPrimary
-                label="Add"
-                style={{ flex: 1 }}
-                onPress={() => {
-                  if (!addDraft.name.trim()) return;
-                  setCats((prev) => [
-                    ...prev,
-                    {
-                      name: addDraft.name.trim(),
-                      icon: addDraft.icon,
-                      tint: addDraft.tint,
-                      capText: '',
-                    },
-                  ]);
-                  setAddDraft(emptyAdd());
-                  setModalOpen(false);
-                }}
-              />
-            </View>
-          </View>
+        <Text style={styles.label}>Icon</Text>
+        <View style={styles.chipRow}>
+          {CATEGORY_ICON_OPTIONS.map((icon) => (
+            <Pressable
+              key={icon}
+              onPress={() => setAddDraft((d) => ({ ...d, icon }))}
+              style={[
+                styles.iconChip,
+                addDraft.icon === icon && styles.iconChipActive,
+                { backgroundColor: iconBg(addDraft.tint) },
+              ]}
+            >
+              <CategoryIcon name={icon} tint={addDraft.tint} />
+            </Pressable>
+          ))}
         </View>
-      </Modal>
+
+        <Text style={styles.label}>Color</Text>
+        <View style={styles.chipRow}>
+          {CATEGORY_TINT_OPTIONS.map((tint) => (
+            <Pressable
+              key={tint}
+              onPress={() => setAddDraft((d) => ({ ...d, tint }))}
+              style={[
+                styles.tintChip,
+                { backgroundColor: tintPalette[tint][500] },
+                addDraft.tint === tint && styles.tintChipActive,
+              ]}
+            />
+          ))}
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+          <ButtonSecondary
+            label="Cancel"
+            onPress={() => {
+              setModalOpen(false);
+              setAddDraft(emptyAdd());
+            }}
+            style={{ flex: 1 }}
+          />
+          <ButtonPrimary
+            label="Add"
+            style={{ flex: 1 }}
+            onPress={() => {
+              if (!addDraft.name.trim()) return;
+              setCats((prev) => [
+                ...prev,
+                {
+                  name: addDraft.name.trim(),
+                  icon: addDraft.icon,
+                  tint: addDraft.tint,
+                  capText: '',
+                },
+              ]);
+              setAddDraft(emptyAdd());
+              setModalOpen(false);
+            }}
+          />
+        </View>
+      </KeyboardSheet>
     </Screen>
   );
 }
@@ -262,20 +266,6 @@ function makeStyles(colors: ThemeColors) {
       fontFamily: typography.uiBold,
       fontSize: 13,
       color: colors.textSecondary,
-    },
-    modalBackdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.55)',
-      justifyContent: 'flex-end',
-    },
-    modalSheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-      paddingBottom: 36,
-      borderWidth: 1,
-      borderColor: colors.border,
     },
     label: {
       fontFamily: typography.uiBold,

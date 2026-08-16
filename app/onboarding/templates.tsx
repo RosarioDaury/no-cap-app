@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Screen, Eyebrow, DisplayTitle, BodySm, Card } from '@/src/components';
+import { Screen, Eyebrow, DisplayTitle, BodySm, Card, BrandMark } from '@/src/components';
 import { ButtonPrimary } from '@/src/components/Buttons';
 import { useOnboarding } from '@/src/hooks/OnboardingContext';
 import { useTheme } from '@/src/hooks/ThemeProvider';
@@ -17,7 +17,8 @@ export default function TemplatesScreen() {
 
   return (
     <Screen edges={['top', 'bottom']} style={{ paddingTop: 20 }}>
-      <Eyebrow>Step 2 of 3</Eyebrow>
+      <BrandMark size={28} />
+      <Eyebrow style={{ marginTop: 14 }}>Step 2 of 3</Eyebrow>
       <DisplayTitle style={{ fontSize: 21, marginBottom: 6 }}>Choose a starting method</DisplayTitle>
       <BodySm style={{ marginBottom: 18 }}>We&apos;ll pre-fill your caps — fine-tune every number after.</BodySm>
 

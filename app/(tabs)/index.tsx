@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, Pressable, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Bell, Sparkles } from 'lucide-react-native';
 import {
@@ -15,6 +15,8 @@ import {
   SectionTitle,
   MonthBarChart,
   currentMonthKey,
+  KeyboardFormScroll,
+  BrandLockup,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
@@ -87,8 +89,14 @@ export default function HomeDashboard() {
 
   return (
     <Screen edges={['top']} padded={false}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Eyebrow>{formatDisplayDate()}</Eyebrow>
+      <KeyboardFormScroll
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.brandRow}>
+          <BrandLockup size="sm" />
+          <Eyebrow style={{ marginBottom: 0 }}>{formatDisplayDate()}</Eyebrow>
+        </View>
         <DisplayTitle style={{ marginBottom: 14 }}>Hey {settings?.displayName ?? 'there'}</DisplayTitle>
 
         {alertCats.length > 0 ? (
@@ -230,7 +238,7 @@ export default function HomeDashboard() {
             </Card>
           </Pressable>
         ) : null}
-      </ScrollView>
+      </KeyboardFormScroll>
     </Screen>
   );
 }
@@ -310,6 +318,12 @@ function makeStyles(colors: ThemeColors) {
       paddingHorizontal: 20,
       paddingTop: 10,
       paddingBottom: 24,
+    },
+    brandRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 8,
     },
     alertBanner: {
       flexDirection: 'row',

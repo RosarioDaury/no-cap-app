@@ -4,9 +4,7 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  ScrollView,
   Pressable,
-  Modal,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -20,6 +18,8 @@ import {
   IconButton,
   EmptyState,
   SectionTitle,
+  KeyboardSheet,
+  KeyboardFormScroll,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
@@ -124,7 +124,7 @@ export default function IncomeScreen() {
 
   return (
     <Screen edges={['top']} padded={false}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardFormScroll contentContainerStyle={styles.content}>
         <View style={styles.topbar}>
           <IconButton onPress={() => router.back()}>
             <ArrowLeft size={16} color={colors.textSecondary} />
@@ -202,50 +202,46 @@ export default function IncomeScreen() {
             </Pressable>
           ))
         )}
-      </ScrollView>
+      </KeyboardFormScroll>
 
-      <Modal visible={!!edit} transparent animationType="slide">
-        <View style={styles.backdrop}>
-          <View style={styles.sheet}>
-            <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Edit income</DisplayTitle>
-            <Text style={styles.fieldLabel}>Amount</Text>
-            <TextInput
-              value={edit?.amountText ?? ''}
-              onChangeText={(amountText) => setEdit((e) => (e ? { ...e, amountText } : e))}
-              placeholder={`${currency}0`}
-              placeholderTextColor={colors.textMuted}
-              keyboardType="decimal-pad"
-              style={styles.input}
-            />
-            <Text style={styles.fieldLabel}>Note</Text>
-            <TextInput
-              value={edit?.note ?? ''}
-              onChangeText={(n) => setEdit((e) => (e ? { ...e, note: n } : e))}
-              placeholder="Optional"
-              placeholderTextColor={colors.textMuted}
-              style={styles.input}
-            />
-            <Text style={styles.fieldLabel}>Date (YYYY-MM-DD)</Text>
-            <TextInput
-              value={edit?.date ?? ''}
-              onChangeText={(date) => setEdit((e) => (e ? { ...e, date } : e))}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.textMuted}
-              autoCapitalize="none"
-              style={styles.input}
-            />
-            <View style={styles.actions}>
-              <ButtonSecondary label="Delete" style={{ flex: 1 }} onPress={onDelete} />
-              <ButtonPrimary label="Save" loading={saving} style={{ flex: 1 }} onPress={onSaveEdit} />
-            </View>
-            <ButtonSecondary
-              label="Cancel"
-              style={{ marginTop: 8 }}
-              onPress={() => setEdit(null)}
-            />
-          </View>
+      <KeyboardSheet visible={!!edit} onRequestClose={() => setEdit(null)} scroll>
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 12 }}>Edit income</DisplayTitle>
+        <Text style={styles.fieldLabel}>Amount</Text>
+        <TextInput
+          value={edit?.amountText ?? ''}
+          onChangeText={(amountText) => setEdit((e) => (e ? { ...e, amountText } : e))}
+          placeholder={`${currency}0`}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="decimal-pad"
+          style={styles.input}
+        />
+        <Text style={styles.fieldLabel}>Note</Text>
+        <TextInput
+          value={edit?.note ?? ''}
+          onChangeText={(n) => setEdit((e) => (e ? { ...e, note: n } : e))}
+          placeholder="Optional"
+          placeholderTextColor={colors.textMuted}
+          style={styles.input}
+        />
+        <Text style={styles.fieldLabel}>Date (YYYY-MM-DD)</Text>
+        <TextInput
+          value={edit?.date ?? ''}
+          onChangeText={(date) => setEdit((e) => (e ? { ...e, date } : e))}
+          placeholder="YYYY-MM-DD"
+          placeholderTextColor={colors.textMuted}
+          autoCapitalize="none"
+          style={styles.input}
+        />
+        <View style={styles.actions}>
+          <ButtonSecondary label="Delete" style={{ flex: 1 }} onPress={onDelete} />
+          <ButtonPrimary label="Save" loading={saving} style={{ flex: 1 }} onPress={onSaveEdit} />
         </View>
-      </Modal>
+        <ButtonSecondary
+          label="Cancel"
+          style={{ marginTop: 8 }}
+          onPress={() => setEdit(null)}
+        />
+      </KeyboardSheet>
     </Screen>
   );
 }
@@ -324,20 +320,6 @@ function makeStyles(colors: ThemeColors) {
       fontFamily: typography.display,
       fontSize: 13,
       color: colors.teal[300],
-    },
-    backdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.55)',
-      justifyContent: 'flex-end',
-    },
-    sheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-      paddingBottom: 36,
-      borderWidth: 1,
-      borderColor: colors.border,
     },
     fieldLabel: {
       fontFamily: typography.uiBold,

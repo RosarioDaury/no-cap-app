@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  ScrollView,
   Pressable,
   Platform,
 } from 'react-native';
@@ -19,6 +18,7 @@ import {
   ButtonPrimary,
   IconButton,
   Card,
+  KeyboardFormScroll,
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
@@ -91,7 +91,7 @@ export default function AddExpenseModal() {
 
   return (
     <Screen edges={['top', 'bottom']} padded={false}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardFormScroll contentContainerStyle={styles.content}>
         <View style={styles.topbar}>
           <IconButton onPress={() => router.back()}>
             <X size={16} color={colors.textSecondary} />
@@ -166,7 +166,7 @@ export default function AddExpenseModal() {
 
         <View style={{ flex: 1, minHeight: 24 }} />
         <ButtonPrimary label="Log expense" onPress={onSubmit} loading={loading} style={{ marginBottom: 20 }} />
-      </ScrollView>
+      </KeyboardFormScroll>
     </Screen>
   );
 }

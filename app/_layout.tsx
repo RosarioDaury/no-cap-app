@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
+import { View, Image } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   useFonts,
@@ -19,6 +19,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { DbProvider, useDb } from '@/src/hooks/DbProvider';
 import { OnboardingProvider } from '@/src/hooks/OnboardingContext';
 import { ThemeProvider, useTheme } from '@/src/hooks/ThemeProvider';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { darkColors } from '@/src/theme/theme';
 
 export { ErrorBoundary } from 'expo-router';
@@ -32,6 +33,10 @@ function RootNavigator() {
   const router = useRouter();
 
   useEffect(() => {
+    if (ready) SplashScreen.hideAsync().catch(() => undefined);
+  }, [ready]);
+
+  useEffect(() => {
     if (!ready || !settings) return;
     const inOnboarding = segments[0] === 'onboarding';
     if (!settings.onboardingComplete && !inOnboarding) {
@@ -40,14 +45,6 @@ function RootNavigator() {
       router.replace('/(tabs)');
     }
   }, [ready, settings, segments, router]);
-
-  if (!ready) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.bgApp, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color={colors.teal[500]} />
-      </View>
-    );
-  }
 
   return (
     <>
@@ -78,25 +75,36 @@ export default function RootLayout() {
     Manrope_700Bold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync().catch(() => undefined);
-  }, [fontsLoaded]);
-
   if (!fontsLoaded) {
     return (
-      <View style={{ flex: 1, backgroundColor: darkColors.bgApp }} />
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: darkColors.bgApp,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Image
+          source={require('../assets/images/lid-off/mark-512-transparent.png')}
+          style={{ width: 80, height: 80 }}
+          accessibilityLabel="NoCap"
+        />
+      </View>
     );
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <DbProvider>
-        <ThemeProvider>
-          <OnboardingProvider>
-            <RootNavigator />
-          </OnboardingProvider>
-        </ThemeProvider>
-      </DbProvider>
+      <KeyboardProvider>
+        <DbProvider>
+          <ThemeProvider>
+            <OnboardingProvider>
+              <RootNavigator />
+            </OnboardingProvider>
+          </ThemeProvider>
+        </DbProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

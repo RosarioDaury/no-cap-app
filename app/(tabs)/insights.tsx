@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { View, Text, Pressable, TextInput, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Sparkles, MessageCircle, WifiOff } from 'lucide-react-native';
-import { Screen, Card, BodySm, DisplayTitle } from '@/src/components';
+import { MessageCircle, WifiOff } from 'lucide-react-native';
+import { Screen, Card, BodySm, DisplayTitle, BrandMark } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useAiAvailability } from '@/src/hooks/useAiAvailability';
 import { useTheme } from '@/src/hooks/ThemeProvider';
@@ -30,7 +30,7 @@ export default function InsightsScreen() {
     <Screen edges={['top']} padded={false}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <Sparkles size={16} color={colors.gold[700]} />
+          <BrandMark size={22} />
           <DisplayTitle style={{ fontSize: 19 }}>Insights</DisplayTitle>
         </View>
 
