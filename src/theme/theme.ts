@@ -149,7 +149,7 @@ export const colors = darkColors;
 /** @deprecated Prefer useTheme().tintPalette */
 export const tintPalette = tintPaletteFor(darkColors);
 
-export const radius = { sm: 12, md: 16, lg: 26, pill: 999 } as const;
+export const radius = { sm: 12, md: 16, lg: 26, xl: 18, pill: 999 } as const;
 
 export const typography = {
   display: 'SpaceGrotesk_600SemiBold',
@@ -160,6 +160,34 @@ export const typography = {
   uiSemiBold: 'Manrope_600SemiBold',
   uiBold: 'Manrope_700Bold',
   eyebrow: 11,
+} as const;
+
+export const type = {
+  hero: { fontFamily: typography.display, fontSize: 52, letterSpacing: -1.5 },
+  display: { fontFamily: typography.display, fontSize: 28, letterSpacing: -0.6 },
+  title: { fontFamily: typography.display, fontSize: 24, letterSpacing: -0.4 },
+  amountLg: { fontFamily: typography.display, fontSize: 21 },
+  amountSm: { fontFamily: typography.display, fontSize: 14 },
+  rowTitle: { fontFamily: typography.uiSemiBold, fontSize: 13.5 },
+  body: { fontFamily: typography.uiMedium, fontSize: 13, lineHeight: 20 },
+  meta: { fontFamily: typography.uiMedium, fontSize: 11 },
+  eyebrow: {
+    fontFamily: typography.uiBold,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase' as const,
+  },
+  tab: { fontFamily: typography.uiBold, fontSize: 9, letterSpacing: 0.4 },
+} as const;
+
+export const glow = {
+  teal: {
+    shadowColor: '#22D3EE',
+    shadowOpacity: 0.28,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 8,
+  },
 } as const;
 
 export const spacing = {

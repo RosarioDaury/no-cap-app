@@ -18,13 +18,12 @@ import {
   Upload,
   Moon,
   Sun,
-  TrendingUp,
-  Wallet,
   FlaskConical,
   User,
   RotateCcw,
+  ArrowLeft,
 } from 'lucide-react-native';
-import { Screen, DisplayTitle, Eyebrow, ListRow, KeyboardSheet, BrandLockup, BrandMark } from '@/src/components';
+import { Screen, DisplayTitle, Eyebrow, ListRow, KeyboardSheet, BrandLockup, BrandMark, IconButton } from '@/src/components';
 import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
@@ -187,8 +186,12 @@ export default function SettingsScreen() {
   return (
     <Screen edges={['top']} padded={false}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={{ marginBottom: 20 }}>
+        <View style={styles.settingsHeader}>
+          <IconButton onPress={() => router.back()} accessibilityLabel="Go back">
+            <ArrowLeft size={16} color={colors.textSecondary} />
+          </IconButton>
           <BrandLockup size="md" />
+          <View style={{ width: 36 }} />
         </View>
 
         <Eyebrow>Budget</Eyebrow>
@@ -280,26 +283,6 @@ export default function SettingsScreen() {
           />
         </View>
 
-        <Eyebrow>More</Eyebrow>
-        <View style={{ marginBottom: 16 }}>
-          <ListRow
-            icon={<Wallet size={16} color={colors.textSecondary} />}
-            title="Income tracking"
-            onPress={() => router.push('/income')}
-          />
-          <ListRow
-            icon={<LayoutGrid size={16} color={colors.textSecondary} />}
-            title="Debt tracker"
-            onPress={() => router.push('/debt')}
-          />
-          <ListRow
-            icon={<TrendingUp size={16} color={colors.textSecondary} />}
-            title="History & trends"
-            onPress={() => router.push('/history')}
-            last
-          />
-        </View>
-
         <Eyebrow>App</Eyebrow>
         <View>
           <ListRow
@@ -356,6 +339,12 @@ function makeStyles(colors: ThemeColors) {
       paddingHorizontal: 20,
       paddingTop: 8,
       paddingBottom: 32,
+    },
+    settingsHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 20,
     },
     switchRow: {
       flexDirection: 'row',

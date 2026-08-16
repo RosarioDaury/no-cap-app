@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, TextInput, Switch, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Lock } from 'lucide-react-native';
-import { Screen, Eyebrow, DisplayTitle, BodySm, Card, KeyboardFormScroll, BrandMark } from '@/src/components';
+import { Screen, DisplayTitle, BodySm, Card, KeyboardFormScroll, BrandMark, OnboardingProgress } from '@/src/components';
 import { ButtonPrimary } from '@/src/components/Buttons';
 import { useOnboarding } from '@/src/hooks/OnboardingContext';
 import { useTheme } from '@/src/hooks/ThemeProvider';
@@ -26,8 +26,8 @@ export default function PermissionsScreen() {
     <Screen edges={['top', 'bottom']} style={{ paddingTop: 20 }} padded={false}>
       <KeyboardFormScroll contentContainerStyle={styles.content}>
         <BrandMark size={28} />
-        <Eyebrow style={{ marginTop: 14 }}>Step 1 of 3</Eyebrow>
-        <DisplayTitle style={{ fontSize: 21, marginBottom: 6 }}>Your data, your call</DisplayTitle>
+        <OnboardingProgress step={2} />
+        <DisplayTitle style={{ fontSize: 28, marginBottom: 6 }}>Your data, your call</DisplayTitle>
         <BodySm style={{ marginBottom: 22 }}>
           NoCap stores everything on this device only. Nothing leaves your phone unless you turn this
           on.

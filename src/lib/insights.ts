@@ -1,6 +1,6 @@
 import { CategoryWithSpend } from '@/src/db/types';
 import { capAlertLevel } from '@/src/lib/capAlerts';
-import { formatMoney, progressRatio } from '@/src/lib/format';
+import { daysLeftInMonth, formatMoney, progressRatio } from '@/src/lib/format';
 
 export type InsightAction = {
   id: string;
@@ -27,6 +27,7 @@ export function buildInsights(
 ): InsightCard[] {
   const over: InsightCard[] = [];
   const warning: InsightCard[] = [];
+  const days = daysLeftInMonth();
 
   for (const cat of categories) {
     if (cat.capCents <= 0) continue;
@@ -45,16 +46,17 @@ export function buildInsights(
         id: `over-${cat.id}`,
         tone: 'coral',
         eyebrow: 'Over cap',
-        body: `${cat.name} is ${formatMoney(overBy, currency)} over its ${formatMoney(cat.capCents, currency)} monthly cap (${formatMoney(cat.spentCents, currency)} spent).`,
+        body: `${cat.name} is ${formatMoney(overBy, currency)} over its ${formatMoney(cat.capCents, currency)} monthly cap (${formatMoney(cat.spentCents, currency)} spent). ${days} day${days === 1 ? '' : 's'} left this month.`,
         actions,
       });
     } else {
       const room = cat.capCents - cat.spentCents;
+      const perDay = Math.floor(room / Math.max(1, days) / 100) * 100;
       warning.push({
         id: `warn-${cat.id}`,
         tone: 'gold',
         eyebrow: 'Cap alert',
-        body: `${cat.name} is at ${pct}% of its cap — ${formatMoney(cat.spentCents, currency)} of ${formatMoney(cat.capCents, currency)}, with ${formatMoney(room, currency)} left.`,
+        body: `${cat.name} is at ${pct}% of its cap — ${formatMoney(cat.spentCents, currency)} of ${formatMoney(cat.capCents, currency)}, with ${formatMoney(room, currency)} left (${formatMoney(perDay, currency)} per day over ${days} days).`,
         actions,
       });
     }

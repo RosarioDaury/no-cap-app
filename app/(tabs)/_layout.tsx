@@ -1,144 +1,142 @@
-import { useMemo } from 'react';
-import { Tabs, useRouter } from 'expo-router';
-import { View, Pressable, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Home, Plus, Target, Sparkles, Settings } from 'lucide-react-native';
-import { ThemeColors } from '@/src/theme/theme';
-import { useTheme } from '@/src/hooks/ThemeProvider';
 import { BrandMark } from '@/src/components';
+import { useTheme } from '@/src/hooks/ThemeProvider';
+import { ThemeColors, glow, type } from '@/src/theme/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Tabs, useRouter } from 'expo-router';
+import { Home, Plus, Sparkles, Target, Wallet } from 'lucide-react-native';
+import { useMemo } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-function TabIcon({
-  Icon,
-  focused,
-}: {
-  Icon: typeof Home;
-  focused: boolean;
-}) {
+function TabIcon({ Icon, focused }: { Icon: typeof Home; focused: boolean }) {
   const { colors } = useTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-
-  return (
-    <View style={[styles.iconWrap, focused && styles.iconActive]}>
-      <Icon size={19} color={focused ? colors.teal[500] : colors.textMuted} />
-    </View>
-  );
+  return <Icon size={19} color={focused ? colors.teal[500] : colors.textMuted} />;
 }
+
+const TAB_BAR_CONTENT = 62;
+const FAB_SIZE = 68;
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const tabBarHeight = TAB_BAR_CONTENT + insets.bottom;
+  const fabBottom = insets.bottom + (TAB_BAR_CONTENT - FAB_SIZE) / 2;
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarHideOnKeyboard: true,
-        tabBarStyle: {
-          backgroundColor: colors.bgApp,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-          height: 62 + insets.bottom,
-          paddingTop: 12,
-          paddingBottom: Math.max(insets.bottom, 12),
-          paddingHorizontal: 14,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarAccessibilityLabel: 'Home',
-          tabBarIcon: ({ focused }) => (
-            <View style={[styles.iconWrap, focused && styles.iconActive]}>
-              <BrandMark
-                size={19}
-                mono
-                ink={focused ? colors.teal[500] : colors.textMuted}
-              />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="add"
-        options={{
-          title: 'Add expense',
-          tabBarAccessibilityLabel: 'Add expense',
-          tabBarButton: () => (
-            <Pressable
-              onPress={() => router.push('/add-expense')}
-              style={styles.addHit}
-              accessibilityRole="button"
-              accessibilityLabel="Add expense"
-            >
-              <View style={styles.addWrap}>
-                <Plus size={19} color={colors.textMuted} />
-              </View>
-            </Pressable>
-          ),
-        }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            router.push('/add-expense');
+    <View style={{ flex: 1 }}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarShowLabel: true,
+          tabBarHideOnKeyboard: true,
+          tabBarActiveTintColor: colors.teal[500],
+          tabBarInactiveTintColor: colors.textMuted,
+          tabBarLabelStyle: {
+            ...type.tab,
+            textTransform: 'uppercase',
+          },
+          tabBarStyle: {
+            backgroundColor: colors.bgApp,
+            borderTopColor: colors.border,
+            borderTopWidth: 1,
+            height: tabBarHeight,
+            paddingTop: 8,
+            paddingBottom: Math.max(insets.bottom, 10),
+            paddingHorizontal: 8,
           },
         }}
-      />
-      <Tabs.Screen
-        name="goals"
-        options={{
-          title: 'Goals',
-          tabBarAccessibilityLabel: 'Goals',
-          tabBarIcon: ({ focused }) => <TabIcon Icon={Target} focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="insights"
-        options={{
-          title: 'Insights',
-          tabBarAccessibilityLabel: 'Insights',
-          tabBarIcon: ({ focused }) => <TabIcon Icon={Sparkles} focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarAccessibilityLabel: 'Settings',
-          tabBarIcon: ({ focused }) => <TabIcon Icon={Settings} focused={focused} />,
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Home',
+            tabBarAccessibilityLabel: 'Home',
+            tabBarIcon: ({ focused }) => (
+              <BrandMark size={19} mono ink={focused ? colors.teal[500] : colors.textMuted} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="money"
+          options={{
+            title: 'Money',
+            tabBarAccessibilityLabel: 'Money',
+            tabBarIcon: ({ focused }) => <TabIcon Icon={Wallet} focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="add"
+          options={{
+            title: '',
+            tabBarLabel: () => null,
+            tabBarAccessibilityLabel: 'Add expense spacer',
+            tabBarButton: () => <View style={styles.spacer} />,
+          }}
+        />
+        <Tabs.Screen
+          name="goals"
+          options={{
+            title: 'Goals',
+            tabBarAccessibilityLabel: 'Goals',
+            tabBarIcon: ({ focused }) => <TabIcon Icon={Target} focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="insights"
+          options={{
+            title: 'Insights',
+            tabBarAccessibilityLabel: 'Insights',
+            tabBarIcon: ({ focused }) => <TabIcon Icon={Sparkles} focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            href: null,
+            title: 'Settings',
+          }}
+        />
+      </Tabs>
+      <Pressable
+        onPress={() => router.push('/add-expense')}
+        accessibilityRole="button"
+        accessibilityLabel="Add expense"
+        style={[styles.fab, { bottom: fabBottom + 20 }, glow.teal]}
+      >
+        <LinearGradient
+          colors={[colors.teal[300], colors.teal[700]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.fabFill}
+        >
+          <Plus size={30} color="#04262b" strokeWidth={2.4} />
+        </LinearGradient>
+      </Pressable>
+    </View>
   );
 }
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    iconWrap: {
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 12,
+    spacer: {
+      width: FAB_SIZE,
     },
-    iconActive: {
-      backgroundColor: colors.surfaceAlt,
-      shadowColor: colors.teal[500],
-      shadowOpacity: 0.35,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 0 },
+    fab: {
+      position: 'absolute',
+      left: '50%',
+      width: FAB_SIZE,
+      height: FAB_SIZE,
+      marginLeft: -FAB_SIZE / 2,
+      borderRadius: FAB_SIZE / 2,
     },
-    addHit: {
-      flex: 1,
+    fabFill: {
+      width: FAB_SIZE,
+      height: FAB_SIZE,
+      borderRadius: FAB_SIZE / 2,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    addWrap: {
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 12,
     },
   });
 }

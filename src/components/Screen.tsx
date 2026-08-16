@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ThemeColors, typography, spacing } from '@/src/theme/theme';
+import { ThemeColors, typography, spacing, type } from '@/src/theme/theme';
 import { useTheme } from '@/src/hooks/ThemeProvider';
 import { BrandMark } from '@/src/components/BrandMark';
 
@@ -87,31 +87,26 @@ function makeStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.xl,
     },
     eyebrow: {
-      fontFamily: typography.uiBold,
-      fontSize: 10,
-      letterSpacing: 1,
-      textTransform: 'uppercase',
+      ...type.eyebrow,
       color: colors.textMuted,
       marginBottom: 4,
     },
     display: {
-      fontFamily: typography.display,
-      fontSize: 22,
+      ...type.title,
       color: colors.textPrimary,
-      letterSpacing: -0.2,
     },
     section: {
+      ...type.meta,
       fontFamily: typography.uiBold,
-      fontSize: 12.5,
       color: colors.textSecondary,
       letterSpacing: 0.2,
       marginBottom: 10,
+      textTransform: 'uppercase',
     },
     bodySm: {
+      ...type.body,
       fontFamily: typography.ui,
-      fontSize: 12.5,
       color: colors.textSecondary,
-      lineHeight: 19,
     },
     empty: {
       paddingVertical: 40,
@@ -119,7 +114,7 @@ function makeStyles(colors: ThemeColors) {
       gap: 10,
     },
     emptyTitle: {
-      fontFamily: typography.uiSemiBold,
+      ...type.rowTitle,
       fontSize: 15,
       color: colors.textPrimary,
     },

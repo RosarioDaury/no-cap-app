@@ -45,6 +45,10 @@ export function formatShortDate(iso: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+export function daysLeftInMonth(d = new Date()) {
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate() - d.getDate() + 1;
+}
+
 export function progressRatio(spentCents: number, capCents: number): number {
   if (capCents <= 0) return 0;
   return Math.min(1, Math.max(0, spentCents / capCents));

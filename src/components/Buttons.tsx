@@ -1,8 +1,11 @@
 import { useMemo } from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Plus, X } from 'lucide-react-native';
 import { ThemeColors, radius, typography } from '@/src/theme/theme';
 import { useTheme } from '@/src/hooks/ThemeProvider';
+
+const ON_ACCENT = '#04262b';
 
 type ButtonProps = {
   label: string;
@@ -23,13 +26,13 @@ export function ButtonPrimary({ label, onPress, disabled, loading, style, compac
       style={({ pressed }) => [{ opacity: pressed || disabled ? 0.75 : 1 }, style]}
     >
       <LinearGradient
-        colors={[colors.chrome1, colors.chrome2, colors.chrome3]}
+        colors={[colors.teal[300], colors.teal[700]]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.primary, compact && styles.compact, disabled && { opacity: 0.5 }]}
       >
         {loading ? (
-          <ActivityIndicator color={colors.chromeText} />
+          <ActivityIndicator color={ON_ACCENT} />
         ) : (
           <Text style={styles.primaryText}>{label}</Text>
         )}
@@ -85,20 +88,18 @@ export function QuickAddButton({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={expanded ? 'Close quick log' : 'Quick log expense'}
-      style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
+      hitSlop={6}
+      style={({ pressed }) => [
+        styles.quick,
+        expanded && styles.quickOpen,
+        { opacity: pressed ? 0.75 : 1 },
+      ]}
     >
-      <LinearGradient
-        colors={
-          expanded
-            ? [colors.chromeExpanded1, colors.chromeExpanded2]
-            : [colors.chrome1, colors.chrome2, colors.chrome3]
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.metalCircle, expanded && styles.metalCircleActive]}
-      >
-        <Text style={styles.metalIcon}>{expanded ? '×' : '+'}</Text>
-      </LinearGradient>
+      {expanded ? (
+        <X size={15} color={ON_ACCENT} strokeWidth={2.4} />
+      ) : (
+        <Plus size={16} color={ON_ACCENT} strokeWidth={2.4} />
+      )}
     </Pressable>
   );
 }
@@ -110,19 +111,12 @@ function makeStyles(colors: ThemeColors) {
       borderRadius: radius.pill,
       alignItems: 'center',
       justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: colors.chromeBorder,
-      shadowColor: colors.teal[500],
-      shadowOpacity: 0.25,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 0 },
-      elevation: 4,
     },
     primaryText: {
       fontFamily: typography.uiBold,
       fontSize: 13,
       letterSpacing: 0.2,
-      color: colors.chromeText,
+      color: ON_ACCENT,
     },
     secondary: {
       height: 48,
@@ -130,8 +124,6 @@ function makeStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: colors.surfaceAlt,
-      borderWidth: 1,
-      borderColor: colors.border,
     },
     secondaryText: {
       fontFamily: typography.uiBold,
@@ -152,26 +144,16 @@ function makeStyles(colors: ThemeColors) {
     compact: {
       height: 38,
     },
-    metalCircle: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
+    quick: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       alignItems: 'center',
       justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: colors.chromeBorder,
+      backgroundColor: colors.teal[500],
     },
-    metalCircleActive: {
-      shadowColor: colors.teal[500],
-      shadowOpacity: 0.35,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 0 },
-    },
-    metalIcon: {
-      color: colors.chromeText,
-      fontSize: 18,
-      fontWeight: '600',
-      lineHeight: 20,
+    quickOpen: {
+      backgroundColor: colors.teal[300],
     },
   });
 }

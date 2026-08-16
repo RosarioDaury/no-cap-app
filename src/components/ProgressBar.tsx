@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
-import { ThemeColors, radius, TintName } from '@/src/theme/theme';
+import { Pressable, View, StyleSheet } from 'react-native';
+import { Settings } from 'lucide-react-native';
+import { ThemeColors, TintName } from '@/src/theme/theme';
 import { useTheme } from '@/src/hooks/ThemeProvider';
 
 export function ProgressBar({
@@ -22,6 +23,15 @@ export function ProgressBar({
         ]}
       />
     </View>
+  );
+}
+
+export function HeaderGear({ onPress }: { onPress: () => void }) {
+  const { colors } = useTheme();
+  return (
+    <IconButton onPress={onPress} accessibilityLabel="Settings">
+      <Settings size={16} color={colors.textSecondary} />
+    </IconButton>
   );
 }
 
@@ -61,14 +71,12 @@ function makeStyles(colors: ThemeColors) {
       borderRadius: 4,
     },
     iconBtn: {
-      width: 34,
-      height: 34,
-      borderRadius: 11,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: colors.surfaceAlt,
-      borderWidth: 1,
-      borderColor: colors.border,
     },
   });
 }

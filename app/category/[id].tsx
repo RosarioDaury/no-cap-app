@@ -16,7 +16,6 @@ import {
   Screen,
   DisplayTitle,
   BodySm,
-  Card,
   CapRing,
   QuickAddButton,
   QuickLogPanel,
@@ -40,7 +39,7 @@ import {
   progressRatio,
   tintForProgress,
 } from '@/src/lib/format';
-import { ThemeColors, typography } from '@/src/theme/theme';
+import { ThemeColors, type, typography } from '@/src/theme/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -197,17 +196,22 @@ export default function CategoryDetailScreen() {
             <ArrowLeft size={16} color={colors.textSecondary} />
           </IconButton>
           <DisplayTitle style={{ fontSize: 17 }}>{name}</DisplayTitle>
-          <View style={{ width: 34 }} />
+          <View style={{ width: 36 }} />
         </View>
 
-        <Card variant={progress >= 1 ? 'tint' : 'default'} tint="coral" style={styles.summary}>
+        <View style={styles.summary}>
           <View style={styles.summaryRow}>
             <CapRing progress={progress} size={58} strokeWidth={3.5} tint={tint} />
             <View style={{ flex: 1 }}>
               <Text style={styles.amount}>{formatMoney(spent, currency)}</Text>
-              <BodySm>
-                of {formatMoney(cap, currency)} · {Math.round(progress * 100)}%
-              </BodySm>
+              <View style={styles.pctRow}>
+                <BodySm>
+                  of {formatMoney(cap, currency)} · {Math.round(progress * 100)}%
+                </BodySm>
+                <Pressable onPress={openEditCap} hitSlop={8}>
+                  <Text style={styles.editCap}>Edit cap</Text>
+                </Pressable>
+              </View>
             </View>
             <QuickAddButton
               expanded={expanded}
@@ -221,6 +225,7 @@ export default function CategoryDetailScreen() {
             <QuickLogPanel
               categoryName={name}
               currencySymbol={currency}
+              remainingCapCents={cap - spent}
               onCancel={() => {
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setExpanded(false);
@@ -235,7 +240,7 @@ export default function CategoryDetailScreen() {
               }}
             />
           ) : null}
-        </Card>
+        </View>
 
         <SectionTitle style={{ marginTop: 18 }}>This month</SectionTitle>
         {txns.length === 0 ? (
@@ -258,7 +263,6 @@ export default function CategoryDetailScreen() {
           </View>
         )}
 
-        <ButtonSecondary label="Edit cap" onPress={openEditCap} style={{ marginTop: 20 }} />
       </KeyboardFormScroll>
 
       <KeyboardSheet visible={capModal} onRequestClose={() => setCapModal(false)}>
@@ -360,8 +364,8 @@ function makeStyles(colors: ThemeColors) {
       marginBottom: 16,
     },
     summary: {
-      paddingVertical: 14,
-      paddingHorizontal: 14,
+      paddingVertical: 8,
+      marginBottom: 8,
     },
     summaryRow: {
       flexDirection: 'row',
@@ -369,9 +373,19 @@ function makeStyles(colors: ThemeColors) {
       gap: 14,
     },
     amount: {
-      fontFamily: typography.display,
-      fontSize: 22,
+      ...type.display,
       color: colors.textPrimary,
+    },
+    pctRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginTop: 2,
+    },
+    editCap: {
+      ...type.meta,
+      color: colors.teal[300],
+      textDecorationLine: 'underline',
     },
     txn: {
       flexDirection: 'row',
@@ -381,19 +395,16 @@ function makeStyles(colors: ThemeColors) {
       borderBottomColor: colors.border,
     },
     txnTitle: {
-      fontFamily: typography.uiSemiBold,
-      fontSize: 13,
+      ...type.rowTitle,
       color: colors.textPrimary,
     },
     txnSub: {
-      fontFamily: typography.ui,
-      fontSize: 11,
+      ...type.meta,
       color: colors.textMuted,
       marginTop: 1,
     },
     txnValue: {
-      fontFamily: typography.display,
-      fontSize: 13,
+      ...type.amountSm,
       color: colors.textPrimary,
     },
     label: {

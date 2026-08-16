@@ -1,6 +1,6 @@
 import { View, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Screen, DisplayTitle, BodySm, BrandMark } from '@/src/components';
+import { Screen, DisplayTitle, BodySm, BrandMark, OnboardingProgress } from '@/src/components';
 import { ButtonPrimary, ButtonGhost } from '@/src/components/Buttons';
 import { useDb } from '@/src/hooks/DbProvider';
 import { typography } from '@/src/theme/theme';
@@ -34,6 +34,7 @@ export default function WelcomeScreen() {
     <Screen style={styles.screen} edges={['top', 'bottom']}>
       <View />
       <View style={styles.center}>
+        <OnboardingProgress step={1} />
         <BrandMark size={88} />
         <DisplayTitle style={styles.brand}>NoCap</DisplayTitle>
         <BodySm style={styles.tagline}>budgeting, for real.</BodySm>
@@ -54,6 +55,7 @@ const styles = StyleSheet.create({
   },
   center: {
     alignItems: 'center',
+    width: '100%',
   },
   brand: {
     fontSize: 32,

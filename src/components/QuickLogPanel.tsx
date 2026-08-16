@@ -3,11 +3,13 @@ import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { ThemeColors, ThemeMode, radius, typography } from '@/src/theme/theme';
 import { useTheme } from '@/src/hooks/ThemeProvider';
 import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
-import { parseMoneyInput } from '@/src/lib/format';
+import { formatMoney, parseMoneyInput } from '@/src/lib/format';
+import { type } from '@/src/theme/theme';
 
 type QuickLogPanelProps = {
   categoryName: string;
   currencySymbol?: string;
+  remainingCapCents?: number;
   onSubmit: (amountCents: number, note?: string) => Promise<void> | void;
   onCancel: () => void;
 };
@@ -15,6 +17,7 @@ type QuickLogPanelProps = {
 export function QuickLogPanel({
   categoryName,
   currencySymbol = 'RD$',
+  remainingCapCents,
   onSubmit,
   onCancel,
 }: QuickLogPanelProps) {
@@ -24,6 +27,9 @@ export function QuickLogPanel({
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const draftCents = parseMoneyInput(raw);
+  const leftover =
+    remainingCapCents == null ? null : remainingCapCents - draftCents;
 
   const handleSubmit = async () => {
     const cents = parseMoneyInput(raw);
@@ -68,6 +74,13 @@ export function QuickLogPanel({
         accessibilityLabel="Expense note"
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {leftover != null ? (
+        <Text style={[styles.footer, leftover < 0 && styles.footerOver]}>
+          {leftover < 0
+            ? `Puts ${categoryName} ${formatMoney(Math.abs(leftover), currencySymbol)} over`
+            : `Leaves ${formatMoney(leftover, currencySymbol)} in ${categoryName} this month`}
+        </Text>
+      ) : null}
       <View style={styles.actions}>
         <ButtonSecondary label="Cancel" onPress={onCancel} compact style={{ flex: 1 }} />
         <ButtonPrimary
@@ -121,6 +134,15 @@ function makeStyles(colors: ThemeColors, mode: ThemeMode) {
       fontSize: 12,
       color: colors.coral[500],
       marginBottom: 8,
+    },
+    footer: {
+      ...type.meta,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginBottom: 10,
+    },
+    footerOver: {
+      color: colors.coral[500],
     },
   });
 }

@@ -21,14 +21,16 @@ export function CategoryIcon({
   name,
   tint,
   size = 16,
+  shade = 700,
 }: {
   name: string;
   tint?: TintName;
   size?: number;
+  shade?: 500 | 700;
 }) {
   const { colors, tintPalette } = useTheme();
   const Icon = map[name] ?? ShoppingCart;
-  const color = tint ? tintPalette[tint][700] : colors.textSecondary;
+  const color = tint ? tintPalette[tint][shade] : colors.textSecondary;
   return <Icon size={size} color={color} />;
 }
 

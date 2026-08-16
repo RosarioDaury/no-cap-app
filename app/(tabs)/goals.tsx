@@ -19,7 +19,6 @@ import {
   DisplayTitle,
   ButtonPrimary,
   ButtonSecondary,
-  RowIcon,
   KeyboardSheet,
   BrandMark,
 } from '@/src/components';
@@ -32,7 +31,7 @@ import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
 import { Goal } from '@/src/db/types';
 import { formatMoney, formatShortDate, parseMoneyInput } from '@/src/lib/format';
-import { ThemeColors, typography } from '@/src/theme/theme';
+import { ThemeColors, radius, type, typography } from '@/src/theme/theme';
 
 type GoalDraft = {
   id?: string;
@@ -176,16 +175,19 @@ export default function GoalsScreen() {
             message="Tap + to add a savings or payoff goal and track progress."
           />
         ) : (
-          <View style={{ gap: 11, flex: 1 }}>
-            {goals.map((g) => {
-              const progress = g.targetCents > 0 ? Math.min(1, g.savedCents / g.targetCents) : 0;
-              return (
-                <Card key={g.id}>
-                  <Pressable onPress={() => openEdit(g)}>
-                    <View style={styles.goalHeader}>
-                      <RowIcon backgroundColor={iconBg('plum')}>
-                        <CategoryIcon name={g.icon} tint="plum" />
-                      </RowIcon>
+          <View style={{ gap: 12, flex: 1 }}>
+            <View style={styles.group}>
+              {goals.map((g, i) => {
+                const progress = g.targetCents > 0 ? Math.min(1, g.savedCents / g.targetCents) : 0;
+                return (
+                  <View
+                    key={g.id}
+                    style={[styles.goalRow, i === goals.length - 1 && { borderBottomWidth: 0 }]}
+                  >
+                    <Pressable onPress={() => openEdit(g)} style={styles.goalHeader}>
+                      <View style={styles.iconChip}>
+                        <CategoryIcon name={g.icon} tint="plum" size={16} shade={500} />
+                      </View>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.rowTitle}>{g.name}</Text>
                         <Text style={styles.rowSub}>
@@ -193,26 +195,23 @@ export default function GoalsScreen() {
                         </Text>
                       </View>
                       <Text style={styles.pct}>{Math.round(progress * 100)}%</Text>
-                    </View>
+                    </Pressable>
                     <ProgressBar progress={progress} tint="plum" />
-                    <Text style={[styles.rowSub, { marginTop: 7 }]}>
-                      {formatMoney(g.savedCents, currency)} of {formatMoney(g.targetCents, currency)}
-                    </Text>
-                  </Pressable>
-                  <View style={styles.cardActions}>
-                    <Pressable
-                      onPress={() => setContribute({ goal: g, amountText: '' })}
-                      style={styles.linkBtn}
-                    >
-                      <Text style={styles.linkText}>Contribute</Text>
-                    </Pressable>
-                    <Pressable onPress={() => onDeleteGoal(g)} style={styles.linkBtn}>
-                      <Text style={[styles.linkText, { color: colors.coral[500] }]}>Delete</Text>
-                    </Pressable>
+                    <View style={styles.goalMeta}>
+                      <Text style={styles.rowSub}>
+                        {formatMoney(g.savedCents, currency)} of {formatMoney(g.targetCents, currency)}
+                      </Text>
+                      <Pressable
+                        onPress={() => setContribute({ goal: g, amountText: '' })}
+                        hitSlop={8}
+                      >
+                        <Text style={styles.linkText}>Contribute</Text>
+                      </Pressable>
+                    </View>
                   </View>
-                </Card>
-              );
-            })}
+                );
+              })}
+            </View>
 
             {room > 0 ? (
               <Card variant="flat" style={styles.tip}>
@@ -282,7 +281,7 @@ export default function GoalsScreen() {
               key={icon}
               onPress={() => setDraft((d) => ({ ...d, icon }))}
               style={[
-                styles.iconChip,
+                styles.sheetIconChip,
                 draft.icon === icon && styles.iconChipActive,
                 { backgroundColor: iconBg('plum') },
               ]}
@@ -303,6 +302,18 @@ export default function GoalsScreen() {
           />
           <ButtonPrimary label="Save" loading={saving} style={{ flex: 1 }} onPress={onSaveGoal} />
         </View>
+        {draft.id ? (
+          <ButtonSecondary
+            label="Delete goal"
+            style={{ marginTop: 8 }}
+            onPress={() => {
+              const g = goals.find((item) => item.id === draft.id);
+              if (!g) return;
+              setGoalModal(false);
+              onDeleteGoal(g);
+            }}
+          />
+        ) : null}
       </KeyboardSheet>
 
       <KeyboardSheet visible={!!contribute} onRequestClose={() => setContribute(null)}>
@@ -363,27 +374,51 @@ function makeStyles(colors: ThemeColors) {
       fontSize: 19,
       color: colors.textPrimary,
     },
+    group: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.xl,
+      overflow: 'hidden',
+    },
+    goalRow: {
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
     goalHeader: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 10,
       marginBottom: 9,
     },
+    iconChip: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.plum[50],
+    },
     rowTitle: {
-      fontFamily: typography.uiSemiBold,
-      fontSize: 13,
+      ...type.rowTitle,
       color: colors.textPrimary,
     },
     rowSub: {
-      fontFamily: typography.ui,
-      fontSize: 11,
+      ...type.meta,
       color: colors.textMuted,
       marginTop: 1,
     },
     pct: {
-      fontFamily: typography.display,
-      fontSize: 13,
+      ...type.amountSm,
       color: colors.plum[500],
+    },
+    goalMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 8,
     },
     tip: {
       flexDirection: 'row',
@@ -430,7 +465,7 @@ function makeStyles(colors: ThemeColors) {
       gap: 8,
       marginBottom: 12,
     },
-    iconChip: {
+    sheetIconChip: {
       width: 36,
       height: 36,
       borderRadius: 11,

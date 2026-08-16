@@ -2,12 +2,12 @@ import { useMemo } from 'react';
 import { View, Text, Pressable, TextInput, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MessageCircle, WifiOff } from 'lucide-react-native';
-import { Screen, Card, BodySm, DisplayTitle, BrandMark } from '@/src/components';
+import { Screen, BodySm, DisplayTitle, BrandMark } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useAiAvailability } from '@/src/hooks/useAiAvailability';
 import { useTheme } from '@/src/hooks/ThemeProvider';
 import { buildInsights } from '@/src/lib/insights';
-import { ThemeColors, TintName, typography } from '@/src/theme/theme';
+import { ThemeColors, TintName, type } from '@/src/theme/theme';
 
 const toneMap: Record<string, TintName> = {
   coral: 'coral',
@@ -34,43 +34,30 @@ export default function InsightsScreen() {
           <DisplayTitle style={{ fontSize: 19 }}>Insights</DisplayTitle>
         </View>
 
-        <View style={{ gap: 10, flex: 1 }}>
+        <View>
           {cards.map((card) => {
             const tint = toneMap[card.tone];
             return (
-              <Card
-                key={card.id}
-                style={{
-                  borderLeftWidth: 2.5,
-                  borderLeftColor: tintPalette[tint][500],
-                  borderTopLeftRadius: 0,
-                  borderBottomLeftRadius: 0,
-                }}
-              >
-                <Text
-                  style={[
-                    styles.eyebrow,
-                    { color: tintPalette[tint][card.tone === 'teal' ? 700 : 500] },
-                  ]}
-                >
+              <View key={card.id} style={styles.block}>
+                <Text style={[styles.eyebrow, { color: tintPalette[tint][500] }]}>
                   {card.eyebrow}
                 </Text>
-                <BodySm style={{ color: colors.textPrimary, marginBottom: 8 }}>{card.body}</BodySm>
+                <BodySm style={{ color: colors.textSecondary, marginBottom: 10 }}>
+                  {card.body}
+                </BodySm>
                 <View style={styles.actions}>
-                  {card.actions.map((action, index) => (
-                    <View key={action.id} style={styles.actionItem}>
-                      {index > 0 ? <Text style={styles.actionSep}>·</Text> : null}
-                      <Pressable
-                        onPress={() => router.push(action.href as never)}
-                        hitSlop={8}
-                        style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
-                      >
-                        <BodySm style={styles.actionLabel}>{action.label}</BodySm>
-                      </Pressable>
-                    </View>
+                  {card.actions.map((action) => (
+                    <Pressable
+                      key={action.id}
+                      onPress={() => router.push(action.href as never)}
+                      hitSlop={8}
+                      style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+                    >
+                      <Text style={styles.actionLabel}>{action.label}</Text>
+                    </Pressable>
                   ))}
                 </View>
-              </Card>
+              </View>
             );
           })}
         </View>
@@ -120,33 +107,27 @@ function makeStyles(colors: ThemeColors) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 7,
-      marginBottom: 16,
+      marginBottom: 8,
+    },
+    block: {
+      paddingVertical: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
     },
     eyebrow: {
-      fontFamily: typography.uiBold,
-      fontSize: 10,
-      letterSpacing: 1,
-      textTransform: 'uppercase',
-      marginBottom: 4,
+      ...type.eyebrow,
+      marginBottom: 6,
     },
     actions: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      alignItems: 'center',
-    },
-    actionItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    actionSep: {
-      color: colors.plum[500],
-      marginHorizontal: 6,
-      fontFamily: typography.uiSemiBold,
-      fontSize: 13,
+      gap: 16,
     },
     actionLabel: {
-      color: colors.plum[500],
-      fontFamily: typography.uiSemiBold,
+      ...type.body,
+      color: colors.textPrimary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.textPrimary,
     },
     chatStub: {
       flexDirection: 'row',
@@ -176,7 +157,7 @@ function makeStyles(colors: ThemeColors) {
       flex: 1,
       height: '100%',
       color: colors.textPrimary,
-      fontFamily: typography.ui,
+      fontFamily: type.body.fontFamily,
       fontSize: 13,
       padding: 0,
     },
