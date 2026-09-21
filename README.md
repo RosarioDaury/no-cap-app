@@ -2,9 +2,17 @@
 
 **Offline-first budgeting for iOS and Android** — set monthly caps, log spends fast, and stay honest about what’s left.
 
-NoCap stores everything on-device with SQLite. There are no accounts or cloud sync in v1. Currency defaults to **RD$** (Dominican peso); USD is available in Settings.
+This repository is a **monolith**: the Expo mobile app and FastAPI backend live together so new features can be built in one place.
 
-Built with **React Native + Expo**, matching the visual system in [`nocap-design 3/`](nocap-design%203/) and the conversion brief in [`REACT_NATIVE_HANDOFF.md`](REACT_NATIVE_HANDOFF.md).
+| Folder | Role |
+| --- | --- |
+| [`mobile/`](mobile/) | React Native + Expo app. On-device SQLite. Offline-first. |
+| [`backend/`](backend/) | FastAPI API for upcoming networked features (AI, auth, sync). |
+| [`nocap-design 3/`](nocap-design%203/) | Static HTML design reference |
+
+NoCap stores everything on-device with SQLite today. There are no accounts or cloud sync in v1. Currency defaults to **RD$** (Dominican peso); USD is available in Settings.
+
+The mobile app is **React Native + Expo SDK 57**, matching the visual system in [`nocap-design 3/`](nocap-design%203/) and the conversion brief in [`REACT_NATIVE_HANDOFF.md`](REACT_NATIVE_HANDOFF.md).
 
 | | |
 | --- | --- |
@@ -96,47 +104,55 @@ Completing onboarding writes categories and settings only — **no demo seed**. 
 
 | Layer | Choice |
 | --- | --- |
-| Runtime | Expo SDK **57**, React Native **0.86**, React **19** |
-| Language | TypeScript |
+| Mobile | Expo SDK **57**, React Native **0.86**, React **19**, TypeScript |
 | Navigation | Expo Router (file-based), typed routes |
 | UI | Custom design system, Space Grotesk + Manrope, Lucide icons |
 | Gradients | `expo-linear-gradient` |
 | Charts / rings | `react-native-svg` (`CapRing`, `MonthBarChart`) |
-| Data | `expo-sqlite` (WAL), integer **cents** |
+| On-device data | `expo-sqlite` (WAL), integer **cents** |
 | Files | `expo-file-system`, `expo-sharing`, `expo-document-picker` |
 | Network gate | `@react-native-community/netinfo` |
 | Dates | `@react-native-community/datetimepicker` |
+| Backend | FastAPI, Pydantic Settings, Uvicorn |
 
 ---
 
 ## Architecture
 
 ```
-app/                    Expo Router screens
-  (tabs)/               Home, Goals, Insights, Settings (+ Add tab → modal)
-  onboarding/           Welcome → permissions → templates → budget-setup
-  categories, category/[id], income, debt, history, add-expense
+mobile/                 Expo app (SDK 57)
+  app/                  Expo Router screens
+    (tabs)/             Home, Goals, Insights, Settings (+ Add tab → modal)
+    onboarding/         Welcome → permissions → templates → budget-setup
+    categories, category/[id], income, debt, history, add-expense
+  src/
+    theme/theme.ts      Dark + light palettes, radius, typography
+    hooks/
+      DbProvider.tsx    SQLite access, refresh, CRUD helpers
+      ThemeProvider.tsx mode + colors from settings.theme
+      OnboardingContext In-progress onboarding fields
+      useAiAvailability consent ∧ online
+    components/         Screen, Card, buttons, CapRing, QuickLogPanel, MonthBarChart, …
+    db/
+      database.ts       Schema + migrations
+      repositories.ts   Queries / writes
+      backup.ts         JSON export / import
+      types.ts          Domain types
+    lib/
+      format.ts         Money, dates, progress
+      insights.ts       Cap-threshold insight cards
+      capAlerts.ts      warning / over levels
 
-src/
-  theme/theme.ts        Dark + light palettes, radius, typography
-  hooks/
-    DbProvider.tsx      SQLite access, refresh, CRUD helpers
-    ThemeProvider.tsx   mode + colors from settings.theme
-    OnboardingContext   In-progress onboarding fields
-    useAiAvailability   consent ∧ online
-  components/           Screen, Card, buttons, CapRing, QuickLogPanel, MonthBarChart, …
-  db/
-    database.ts         Schema + migrations
-    repositories.ts     Queries / writes
-    backup.ts           JSON export / import
-    types.ts            Domain types
-  lib/
-    format.ts           Money, dates, progress
-    insights.ts         Cap-threshold insight cards
-    capAlerts.ts        warning / over levels
+backend/                FastAPI modular monolith
+  app/main.py           App instance, CORS, router includes
+  app/api/              HTTP routes (health today; add resources here)
+  app/core/             Settings
+  tests/                API tests
 ```
 
-**State flow:** screens call `useDb()` → repositories → SQLite → `refresh()` updates provider state. Theme reads `settings.theme` and exposes `useTheme().colors` so UI StyleSheets remount with the active palette.
+**Mobile state flow:** screens call `useDb()` → repositories → SQLite → `refresh()` updates provider state. Theme reads `settings.theme` and exposes `useTheme().colors` so UI StyleSheets remount with the active palette.
+
+**Backend:** grow FastAPI in-place. Do not add a second service.
 
 ---
 
@@ -182,9 +198,12 @@ src/
 
 ## Getting started
 
-**Requirements:** Node 20+, Expo Go or iOS Simulator / Android emulator.
+**Requirements:** Node 20+, Python 3.11+, Expo Go or iOS Simulator / Android emulator.
+
+### Mobile
 
 ```bash
+cd mobile
 npm install
 npm start
 ```
@@ -196,7 +215,20 @@ npm start
 | Android | `npm run android` |
 | Web | `npm run web` |
 
-Then press `i` / `a` in the terminal, or scan the QR code with Expo Go.
+Then press `i` / `a` in the terminal, or scan the QR code with Expo Go. EAS commands (`eas build`, `eas submit`) also run from `mobile/`.
+
+### Backend
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+fastapi dev
+```
+
+- API: http://127.0.0.1:8000
+- Docs: http://127.0.0.1:8000/docs
 
 ---
 
@@ -214,6 +246,9 @@ Future AI analysis of monthly data is intentional later work; current Insights s
 
 | File | Contents |
 | --- | --- |
+| [`AGENTS.md`](AGENTS.md) | How to work in this monolith (for humans and coding agents) |
+| [`mobile/`](mobile/) | Expo mobile app |
+| [`backend/README.md`](backend/README.md) | FastAPI setup |
 | [`REACT_NATIVE_HANDOFF.md`](REACT_NATIVE_HANDOFF.md) | Design → RN conversion brief |
 | [`BACKLOG.md`](BACKLOG.md) | Feature checklist (most P0–P3 items completed) |
 | [`nocap-design 3/`](nocap-design%203/) | Static HTML design reference |

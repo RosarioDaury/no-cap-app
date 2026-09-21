@@ -1,0 +1,30 @@
+[project]
+name = "nocap-backend"
+version = "0.1.0"
+description = "NoCap API — FastAPI backend for the NoCap budgeting app."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]==0.141.1",
+    "pydantic-settings==2.15.0",
+    "python-dotenv==1.2.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.fastapi]
+entrypoint = "app.main:app"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -29,7 +29,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 |--|--|
 | **Status** | Completed |
 | **What changed** | Removed auto-seed from `completeOnboarding` and app launch. Added opt-in `loadSampleData({ force })` and Settings → **Load sample data**. Onboarding clears goals/debts/txns and keeps only user categories. |
-| **Files** | [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx), [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx) |
+| **Files** | [`src/db/repositories.ts`](mobile/src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](mobile/src/hooks/DbProvider.tsx), [`app/(tabs)/settings.tsx`](mobile/app/(tabs)/settings.tsx) |
 | **Acceptance criteria** | |
 | | - [x] Completing onboarding leaves only the categories/caps the user set |
 | | - [x] Empty states show for Goals / Debt / History when there is no user data |
@@ -44,7 +44,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 |--|--|
 | **Status** | Completed |
 | **What changed** | New `/categories` screen (add/edit/delete, icon + tint + cap). Settings links there. Category detail has **Edit cap**. `deleteCategory` nulls txn `category_id` then deletes. |
-| **Files** | [`app/categories.tsx`](app/categories.tsx), [`app/category/[id].tsx`](app/category/[id].tsx), [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx) |
+| **Files** | [`app/categories.tsx`](mobile/app/categories.tsx), [`app/category/[id].tsx`](mobile/app/category/[id].tsx), [`app/(tabs)/settings.tsx`](mobile/app/(tabs)/settings.tsx), [`src/db/repositories.ts`](mobile/src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](mobile/src/hooks/DbProvider.tsx) |
 | **Acceptance criteria** | |
 | | - [x] Dedicated screen from Settings |
 | | - [x] Edit name, icon, tint, monthly cap; add; delete |
@@ -59,7 +59,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 |--|--|
 | **Status** | Completed (awaiting commit confirmation) |
 | **What changed** | Goals `+` opens add sheet; tap goal to edit; Contribute adds to `saved_cents`; Delete with confirm. Repo: `updateGoal`, `contributeToGoal`, `deleteGoal`. Safer goals sort without `NULLS LAST`. |
-| **Files** | [`app/(tabs)/goals.tsx`](app/(tabs)/goals.tsx), [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx) |
+| **Files** | [`app/(tabs)/goals.tsx`](mobile/app/(tabs)/goals.tsx), [`src/db/repositories.ts`](mobile/src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](mobile/src/hooks/DbProvider.tsx) |
 | **Acceptance criteria** | |
 | | - [x] `+` opens add-goal sheet |
 | | - [x] Tap goal → edit / delete |
@@ -75,7 +75,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 |--|--|
 | **Status** | Completed (awaiting commit confirmation) |
 | **What changed** | Add/edit/delete debts; log payment reduces balance; `original_balance_cents` for real % paid; total remaining summary + tip. |
-| **Files** | [`app/debt.tsx`](app/debt.tsx), [`src/db/database.ts`](src/db/database.ts), [`src/db/types.ts`](src/db/types.ts), [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx) |
+| **Files** | [`app/debt.tsx`](mobile/app/debt.tsx), [`src/db/database.ts`](mobile/src/db/database.ts), [`src/db/types.ts`](mobile/src/db/types.ts), [`src/db/repositories.ts`](mobile/src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](mobile/src/hooks/DbProvider.tsx) |
 | **Acceptance criteria** | |
 | | - [x] Add / edit / delete debt |
 | | - [x] Log payment reduces balance |
@@ -93,7 +93,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 |--|--|
 | **Status** | Completed (awaiting commit confirmation) |
 | **What changed** | `updateTransaction` / `deleteTransaction`; tap expense on category detail or income row to edit amount/note/date (and category for expenses) or delete with confirm. Income “This month” total now filters by calendar month. |
-| **Files** | [`src/db/repositories.ts`](src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](src/hooks/DbProvider.tsx), [`app/category/[id].tsx`](app/category/[id].tsx), [`app/income.tsx`](app/income.tsx) |
+| **Files** | [`src/db/repositories.ts`](mobile/src/db/repositories.ts), [`src/hooks/DbProvider.tsx`](mobile/src/hooks/DbProvider.tsx), [`app/category/[id].tsx`](mobile/app/category/[id].tsx), [`app/income.tsx`](mobile/app/income.tsx) |
 | **Acceptance criteria** | |
 | | - [x] update/delete in repo + provider |
 | | - [x] Tap txn → edit / delete |
@@ -108,7 +108,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 |--|--|
 | **Status** | Completed (awaiting commit confirmation) |
 | **What changed** | Settings picks 50/80/90/100% threshold. Home shows alert banner + gold/coral row badges when categories hit threshold or go over. In-app only (no push notifications yet). |
-| **Files** | [`src/lib/capAlerts.ts`](src/lib/capAlerts.ts), [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), [`app/(tabs)/index.tsx`](app/(tabs)/index.tsx) |
+| **Files** | [`src/lib/capAlerts.ts`](mobile/src/lib/capAlerts.ts), [`app/(tabs)/settings.tsx`](mobile/app/(tabs)/settings.tsx), [`app/(tabs)/index.tsx`](mobile/app/(tabs)/index.tsx) |
 | **Acceptance criteria** | |
 | | - [x] User can set threshold |
 | | - [x] In-app approaching/over state on Home |
@@ -122,7 +122,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 |--|--|
 | **Status** | Completed (awaiting commit confirmation) |
 | **What changed** | Add Expense date row opens `@react-native-community/datetimepicker`; selected date saved on the transaction; defaults to today. |
-| **Files** | [`app/add-expense.tsx`](app/add-expense.tsx), `package.json` / lockfile, `app.json` plugin |
+| **Files** | [`app/add-expense.tsx`](mobile/app/add-expense.tsx), `package.json` / lockfile, `app.json` plugin |
 | **Acceptance criteria** | |
 | | - [x] Date row opens picker |
 | | - [x] Selected date saved |
@@ -136,7 +136,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 |--|--|
 | **Status** | Completed (awaiting commit confirmation) |
 | **What changed** | Month-filtered income total; Spent (category month spend) + Net (income − spent); Sources list shows this month’s income rows. |
-| **Files** | [`app/income.tsx`](app/income.tsx) |
+| **Files** | [`app/income.tsx`](mobile/app/income.tsx) |
 | **Acceptance criteria** | |
 | | - [x] Monthly income filtered by calendar month |
 | | - [x] Show spent and net |
@@ -149,7 +149,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Offline-first needs recovery. Welcome “Import a backup” and Settings Export/Import are stubs / Alerts. |
-| **Files** | [`app/onboarding/welcome.tsx`](app/onboarding/welcome.tsx), [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), [`src/db/backup.ts`](src/db/backup.ts) |
+| **Files** | [`app/onboarding/welcome.tsx`](mobile/app/onboarding/welcome.tsx), [`app/(tabs)/settings.tsx`](mobile/app/(tabs)/settings.tsx), [`src/db/backup.ts`](mobile/src/db/backup.ts) |
 | **Done** | JSON v1 backup via share sheet; import replaces all data after confirm; Welcome import sets onboarding complete and lands on tabs; schema version validated |
 
 ---
@@ -159,7 +159,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Currency only shows an Alert. Display name is hardcoded to `"Alex"` with no UI to change it (Home greets by name). |
-| **Files** | [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx) (`setSetting` already supported these fields) |
+| **Files** | [`app/(tabs)/settings.tsx`](mobile/app/(tabs)/settings.tsx) (`setSetting` already supported these fields) |
 | **Done** | Display name editor (sheet) updates Home greeting; currency picker RD$ / USD; persisted via `updateSettings` |
 
 ---
@@ -171,7 +171,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Lines like “Adjust cap · Set a mid-month alert”, “Move to Emergency fund”, “See payoff plan” are non-interactive text. |
-| **Files** | [`app/(tabs)/insights.tsx`](app/(tabs)/insights.tsx), [`src/lib/insights.ts`](src/lib/insights.ts) |
+| **Files** | [`app/(tabs)/insights.tsx`](mobile/app/(tabs)/insights.tsx), [`src/lib/insights.ts`](mobile/src/lib/insights.ts) |
 | **Done** | Cards expose `actions[]` with `href`; taps go to category, Settings (cap alerts), Goals, Debt, or Add Expense |
 
 ---
@@ -181,7 +181,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Basic monthly bars only. HTML has richer vs-cap / over-under context. Months with zero spend may be missing from the chart. |
-| **Files** | [`app/history.tsx`](app/history.tsx), [`src/db/repositories.ts`](src/db/repositories.ts) (`monthlyExpenseTotals`), design: [`nocap-design 3/10-history-trends.html`](nocap-design%203/10-history-trends.html) |
+| **Files** | [`app/history.tsx`](mobile/app/history.tsx), [`src/db/repositories.ts`](mobile/src/db/repositories.ts) (`monthlyExpenseTotals`), design: [`nocap-design 3/10-history-trends.html`](nocap-design%203/10-history-trends.html) |
 | **Done** | Last 6 months filled (incl. zeros); bars by % of total cap; rows show spend/cap with In progress / Over cap / saved |
 
 ---
@@ -191,7 +191,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Add category only asks for a name (default icon/tint). No remove. Design allows “ranged cap” (e.g. 10k–15k) which is unsupported. |
-| **Files** | [`app/onboarding/budget-setup.tsx`](app/onboarding/budget-setup.tsx), permissions/templates step labels |
+| **Files** | [`app/onboarding/budget-setup.tsx`](mobile/app/onboarding/budget-setup.tsx), permissions/templates step labels |
 | **Done** | Icon + tint when adding; remove row; keep single monthly cap (no ranged caps in v1); steps are 1–3 of 3 |
 
 ---
@@ -201,7 +201,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Chat input is always disabled. Handoff: show/enable only when conversational AI is opted in (still stub OK for v1). |
-| **Files** | [`app/(tabs)/insights.tsx`](app/(tabs)/insights.tsx), settings `aiConsent` |
+| **Files** | [`app/(tabs)/insights.tsx`](mobile/app/(tabs)/insights.tsx), settings `aiConsent` |
 | **Done** | Consent off → “Enable in Settings” link; consent on → coming-soon stub (no network) |
 
 ---
@@ -211,7 +211,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Plan specified `@gorhom/bottom-sheet`; package is installed but unused. Stack modal + RN `Modal` are used instead. |
-| **Files** | [`package.json`](package.json) |
+| **Files** | [`package.json`](mobile/package.json) |
 | **Done** | Removed unused `@gorhom/bottom-sheet`; keep existing Stack modal + RN `Modal` sheets |
 
 ---
@@ -221,7 +221,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Full Add Expense supports notes; quick-log is amount-only. |
-| **Files** | [`src/components/QuickLogPanel.tsx`](src/components/QuickLogPanel.tsx) |
+| **Files** | [`src/components/QuickLogPanel.tsx`](mobile/src/components/QuickLogPanel.tsx) |
 | **Done** | Optional note field on quick-log; saved with the expense |
 
 ---
@@ -231,7 +231,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Icon-only tab bar and quick-add controls have no `accessibilityLabel` / roles. |
-| **Files** | [`app/(tabs)/_layout.tsx`](app/(tabs)/_layout.tsx), [`src/components/Buttons.tsx`](src/components/Buttons.tsx), [`src/components/ProgressBar.tsx`](src/components/ProgressBar.tsx) |
+| **Files** | [`app/(tabs)/_layout.tsx`](mobile/app/(tabs)/_layout.tsx), [`src/components/Buttons.tsx`](mobile/src/components/Buttons.tsx), [`src/components/ProgressBar.tsx`](mobile/src/components/ProgressBar.tsx) |
 | **Done** | Tab labels, Add expense button, QuickAddButton, IconButton support spoken labels |
 
 ---
@@ -241,7 +241,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | HTML home includes a bottom insight teaser card; RN Home focuses on caps only. |
-| **Files** | [`app/(tabs)/index.tsx`](app/(tabs)/index.tsx), [`nocap-design 3/05-home-dashboard.html`](nocap-design%203/05-home-dashboard.html) |
+| **Files** | [`app/(tabs)/index.tsx`](mobile/app/(tabs)/index.tsx), [`nocap-design 3/05-home-dashboard.html`](nocap-design%203/05-home-dashboard.html) |
 | **Done** | Top insight card on Home links to Insights when a non-empty insight exists |
 
 ---
@@ -253,7 +253,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Expo defaults only; splash background is already dark in `app.json` but art is generic. |
-| **Files** | [`assets/images/`](assets/images/), [`app.json`](app.json) |
+| **Files** | [`assets/images/`](mobile/assets/images/), [`app.json`](mobile/app.json) |
 | **Done** | Branded three-ring NoCap mark for icon, splash, favicon, and Android adaptive foreground |
 
 ---
@@ -273,7 +273,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | No Settings path to wipe DB and re-run onboarding. |
-| **Files** | [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx), [`src/db/repositories.ts`](src/db/repositories.ts) `resetAllData` |
+| **Files** | [`app/(tabs)/settings.tsx`](mobile/app/(tabs)/settings.tsx), [`src/db/repositories.ts`](mobile/src/db/repositories.ts) `resetAllData` |
 | **Done** | “Reset NoCap” with double confirm; clears tables and returns to welcome |
 
 ---
@@ -283,7 +283,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | `formatMoney` currently drops fractional cents (whole units only). Fine for RD$ pesos-as-cents storage if always whole, but document or support decimals if USD cents matter. |
-| **Files** | [`src/lib/format.ts`](src/lib/format.ts) |
+| **Files** | [`src/lib/format.ts`](mobile/src/lib/format.ts) |
 | **Done** | Documented integer-cents storage; RD$ whole units; USD/`$`/`€` show 2 decimals |
 
 ---
@@ -293,7 +293,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | `ORDER BY due_date ASC NULLS LAST` may be fragile depending on SQLite / expo-sqlite version. |
-| **Files** | [`src/db/repositories.ts`](src/db/repositories.ts) `listGoals` |
+| **Files** | [`src/db/repositories.ts`](mobile/src/db/repositories.ts) `listGoals` |
 | **Done** | Uses portable `CASE WHEN due_date IS NULL THEN 1 ELSE 0 END` (no `NULLS LAST`) |
 
 ---
@@ -303,7 +303,7 @@ Suggested order: **P0 → P1 → P2 → P3**.
 | | |
 |--|--|
 | **Why** | Settings shows Theme → “Dark” with empty press. Dark-only is fine per handoff. |
-| **Files** | [`app/(tabs)/settings.tsx`](app/(tabs)/settings.tsx) |
+| **Files** | [`app/(tabs)/settings.tsx`](mobile/app/(tabs)/settings.tsx) |
 | **Done** | Labeled “Dark (only)” with no chevron / press handler |
 
 ---

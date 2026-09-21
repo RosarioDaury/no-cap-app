@@ -2,6 +2,8 @@
 
 # dependencies
 node_modules/
+.venv/
+venv/
 
 # Expo
 .expo/
@@ -38,5 +40,15 @@ yarn-error.*
 *.tsbuildinfo
 
 # generated native folders
-/ios
-/android
+ios/
+android/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+.Python
