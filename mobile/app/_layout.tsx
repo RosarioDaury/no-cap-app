@@ -1,7 +1,9 @@
-import { useEffect } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { useEffect, useRef } from 'react';
+import { Href, Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, Image } from 'react-native';
+import { View, Image, Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import '@/src/lib/billNotifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   useFonts,
@@ -17,6 +19,7 @@ import {
 } from '@expo-google-fonts/manrope';
 import * as SplashScreen from 'expo-splash-screen';
 import { DbProvider, useDb } from '@/src/hooks/DbProvider';
+import { AuthProvider } from '@/src/hooks/AuthProvider';
 import { OnboardingProvider } from '@/src/hooks/OnboardingContext';
 import { ThemeProvider, useTheme } from '@/src/hooks/ThemeProvider';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -31,6 +34,7 @@ function RootNavigator() {
   const { colors, mode } = useTheme();
   const segments = useSegments();
   const router = useRouter();
+  const handledLaunchNotification = useRef(false);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => undefined);
@@ -46,6 +50,25 @@ function RootNavigator() {
     }
   }, [ready, settings, segments, router]);
 
+  useEffect(() => {
+    if (!ready || !settings?.onboardingComplete) return;
+    if (Platform.OS !== 'ios' && Platform.OS !== 'android') return;
+
+    const openBillsIfNeeded = (response: Notifications.NotificationResponse | null) => {
+      const screen = response?.notification.request.content.data?.screen;
+      if (screen === 'bills') {
+        router.push('/bills' as Href);
+      }
+    };
+
+    if (!handledLaunchNotification.current) {
+      handledLaunchNotification.current = true;
+      void Notifications.getLastNotificationResponseAsync().then(openBillsIfNeeded);
+    }
+    const sub = Notifications.addNotificationResponseReceivedListener(openBillsIfNeeded);
+    return () => sub.remove();
+  }, [ready, settings?.onboardingComplete, router]);
+
   return (
     <>
       <StatusBar style={mode === 'light' ? 'dark' : 'light'} />
@@ -57,10 +80,13 @@ function RootNavigator() {
           name="add-expense"
           options={{ presentation: 'transparentModal', contentStyle: { backgroundColor: 'transparent' } }}
         />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
         <Stack.Screen name="categories" />
         <Stack.Screen name="category/[id]" />
         <Stack.Screen name="income" />
         <Stack.Screen name="debt" />
+        <Stack.Screen name="bills" />
         <Stack.Screen name="history" />
       </Stack>
     </>
@@ -102,9 +128,11 @@ export default function RootLayout() {
       <KeyboardProvider>
         <DbProvider>
           <ThemeProvider>
-            <OnboardingProvider>
-              <RootNavigator />
-            </OnboardingProvider>
+            <AuthProvider>
+              <OnboardingProvider>
+                <RootNavigator />
+              </OnboardingProvider>
+            </AuthProvider>
           </ThemeProvider>
         </DbProvider>
       </KeyboardProvider>

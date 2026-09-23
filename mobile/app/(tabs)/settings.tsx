@@ -8,11 +8,12 @@ import {
   Switch,
   TextInput,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import {
   DollarSign,
   LayoutGrid,
   Bell,
+  Receipt,
   Sparkles,
   Download,
   Upload,
@@ -22,10 +23,13 @@ import {
   User,
   RotateCcw,
   ArrowLeft,
+  LogIn,
+  LogOut,
 } from 'lucide-react-native';
 import { Screen, DisplayTitle, Eyebrow, ListRow, KeyboardSheet, BrandLockup, BrandMark, IconButton } from '@/src/components';
 import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
 import { useDb } from '@/src/hooks/DbProvider';
+import { useAuth } from '@/src/hooks/AuthProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
 import { ThemeColors, typography } from '@/src/theme/theme';
 
@@ -36,8 +40,9 @@ const CURRENCY_OPTIONS = [
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { settings, setSetting, loadSampleData, categories, exportBackup, importBackup, resetData } =
+  const { settings, setSetting, loadSampleData, categories, bills, exportBackup, importBackup, resetData } =
     useDb();
+  const { user, signOut } = useAuth();
   const { colors, mode, setMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -54,7 +59,7 @@ export default function SettingsScreen() {
   const onLoadSample = () => {
     Alert.alert(
       'Load sample data?',
-      'This replaces goals, debts, and transactions with demo numbers. Your categories and caps stay as they are.',
+      'This replaces goals, debts, bills, and transactions with demo numbers. Your categories and caps stay as they are.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -79,7 +84,7 @@ export default function SettingsScreen() {
   const onImport = () => {
     Alert.alert(
       'Import backup?',
-      'This replaces all categories, transactions, goals, and debts with the backup file.',
+      'This replaces all categories, transactions, goals, debts, and bills with the backup file.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -149,10 +154,23 @@ export default function SettingsScreen() {
     }
   };
 
+  const onSignOut = () => {
+    Alert.alert('Sign out?', 'Chats stay on the server. This device will forget the session.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign out',
+        style: 'destructive',
+        onPress: () => {
+          signOut().catch(() => Alert.alert('Sign out failed', 'Try again.'));
+        },
+      },
+    ]);
+  };
+
   const onReset = () => {
     Alert.alert(
       'Reset NoCap?',
-      'This permanently deletes all categories, transactions, goals, and debts on this device.',
+      'This permanently deletes all categories, transactions, goals, debts, and bills on this device.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -230,6 +248,16 @@ export default function SettingsScreen() {
                 ],
               );
             }}
+          />
+          <ListRow
+            icon={<Receipt size={16} color={colors.textSecondary} />}
+            title="Recurring bills"
+            value={
+              bills.length === 0
+                ? 'None'
+                : `${bills.filter((b) => !b.paidThisMonth).length} open`
+            }
+            onPress={() => router.push('/bills' as Href)}
             last
           />
         </View>
@@ -241,7 +269,9 @@ export default function SettingsScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.switchTitle}>Conversational AI advice</Text>
               <Text style={styles.switchSub}>
-                Opt-in required. Chat also needs an internet connection.
+                {user
+                  ? 'On when you are online. Sign out to pause saved chats.'
+                  : 'Register or sign in, then stay online to use chat.'}
               </Text>
             </View>
             <Switch
@@ -251,13 +281,30 @@ export default function SettingsScreen() {
               thumbColor={settings?.aiConsent ? colors.teal[300] : colors.textMuted}
             />
           </View>
+
+          {user ? (
+            <ListRow
+              icon={<LogOut size={16} color={colors.textSecondary} />}
+              title="Signed in"
+              value={`@${user.username}`}
+              subtitle={`${user.email} · sessions live on the server`}
+              onPress={onSignOut}
+            />
+          ) : (
+            <ListRow
+              icon={<LogIn size={16} color={colors.textSecondary} />}
+              title="NoCap account"
+              subtitle="Register or sign in for saved chats and AI advice"
+              onPress={() => router.push('/login')}
+            />
+          )}
           <ListRow
             icon={<FlaskConical size={16} color={colors.textSecondary} />}
             title="Load sample data"
             subtitle={
               categories.length === 0
                 ? 'Needs categories first'
-                : 'Demo goals, debts, and spends'
+                : 'Demo goals, debts, bills, and spends'
             }
             onPress={categories.length === 0 ? undefined : onLoadSample}
             showChevron={categories.length > 0}

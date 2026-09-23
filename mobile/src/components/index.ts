@@ -4,6 +4,7 @@ export { KeyboardSheet } from './KeyboardSheet';
 export { KeyboardFormScroll } from './KeyboardFormScroll';
 export { Card } from './Card';
 export { ButtonPrimary, ButtonSecondary, ButtonGhost, QuickAddButton } from './Buttons';
+export { AccountAuthForm } from './AccountAuthForm';
 export { CapRing } from './CapRing';
 export { Chip } from './Chip';
 export { ListRow, RowIcon } from './ListRow';
