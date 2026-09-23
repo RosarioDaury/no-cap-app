@@ -7,6 +7,7 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react-native';
@@ -21,6 +22,7 @@ import {
   ButtonSecondary,
   RowIcon,
   KeyboardSheet,
+  Chip,
 } from '@/src/components';
 import {
   CategoryIcon,
@@ -31,7 +33,13 @@ import {
 import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
 import { CategoryWithSpend } from '@/src/db/types';
-import { formatMoney, parseMoneyInput } from '@/src/lib/format';
+import { formatMoney, hasMonthlyCap, parseMoneyInput } from '@/src/lib/format';
+import {
+  CategoryDuration,
+  activeMonthFromDuration,
+  categoryDurationLabel,
+  durationFromActiveMonth,
+} from '@/src/lib/categories';
 import { ThemeColors, TintName, typography } from '@/src/theme/theme';
 
 type Draft = {
@@ -40,6 +48,9 @@ type Draft = {
   icon: string;
   tint: TintName;
   capText: string;
+  noLimit: boolean;
+  duration: CategoryDuration;
+  customMonth: string | null;
 };
 
 const emptyDraft = (): Draft => ({
@@ -47,11 +58,14 @@ const emptyDraft = (): Draft => ({
   icon: 'heart',
   tint: 'teal',
   capText: '',
+  noLimit: false,
+  duration: 'ongoing',
+  customMonth: null,
 });
 
 export default function CategoriesScreen() {
   const router = useRouter();
-  const { categories, settings, saveCategory, removeCategory } = useDb();
+  const { allCategories, settings, saveCategory, removeCategory } = useDb();
   const { colors, tintPalette } = useTheme();
   const iconBg = useIconBg();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -73,7 +87,10 @@ export default function CategoriesScreen() {
       name: cat.name,
       icon: cat.icon,
       tint: cat.tint,
-      capText: cat.capCents ? String(cat.capCents / 100) : '',
+      capText: hasMonthlyCap(cat.capCents) ? String(cat.capCents / 100) : '',
+      noLimit: !hasMonthlyCap(cat.capCents),
+      duration: durationFromActiveMonth(cat.activeMonth),
+      customMonth: cat.activeMonth,
     });
     setModalOpen(true);
   };
@@ -84,7 +101,11 @@ export default function CategoriesScreen() {
       Alert.alert('Name required', 'Give this category a name.');
       return;
     }
-    const capCents = parseMoneyInput(draft.capText);
+    const capCents = draft.noLimit ? 0 : parseMoneyInput(draft.capText);
+    if (!draft.noLimit && capCents <= 0) {
+      Alert.alert('Monthly cap', 'Enter a cap, or turn on no monthly limit.');
+      return;
+    }
     setSaving(true);
     try {
       await saveCategory({
@@ -94,8 +115,9 @@ export default function CategoriesScreen() {
         tint: draft.tint,
         capCents,
         sortOrder: draft.id
-          ? categories.find((c) => c.id === draft.id)?.sortOrder ?? categories.length
-          : categories.length,
+          ? allCategories.find((c) => c.id === draft.id)?.sortOrder ?? allCategories.length
+          : allCategories.length,
+        activeMonth: activeMonthFromDuration(draft.duration, draft.customMonth),
       });
       setModalOpen(false);
       setDraft(emptyDraft());
@@ -135,17 +157,17 @@ export default function CategoriesScreen() {
         </View>
 
         <BodySm style={{ marginBottom: 14 }}>
-          Caps are monthly limits. Changes show up on Home right away.
+          Caps are monthly limits. Leave a category uncapped, or make it last this month or next month only.
         </BodySm>
 
-        {categories.length === 0 ? (
+        {allCategories.length === 0 ? (
           <EmptyState
             title="No categories"
-            message="Add a category and set a monthly cap to start tracking."
+            message="Add a category with a monthly cap, or with no limit."
           />
         ) : (
           <View style={{ gap: 9 }}>
-            {categories.map((cat) => (
+            {allCategories.map((cat) => (
               <Card key={cat.id} style={styles.rowCard}>
                 <Pressable onPress={() => openEdit(cat)} style={styles.rowMain}>
                   <RowIcon backgroundColor={iconBg(cat.tint)}>
@@ -154,8 +176,13 @@ export default function CategoriesScreen() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.rowTitle}>{cat.name}</Text>
                     <Text style={styles.rowSub}>
-                      Cap {formatMoney(cat.capCents, currency)} · spent{' '}
-                      {formatMoney(cat.spentCents, currency)}
+                      {hasMonthlyCap(cat.capCents)
+                        ? `Cap ${formatMoney(cat.capCents, currency)}`
+                        : 'No limit'}
+                      {' · '}
+                      spent {formatMoney(cat.spentCents, currency)}
+                      {' · '}
+                      {categoryDurationLabel(cat.activeMonth)}
                     </Text>
                   </View>
                 </Pressable>
@@ -197,15 +224,57 @@ export default function CategoriesScreen() {
           style={styles.input}
         />
 
-        <Text style={styles.label}>Monthly cap</Text>
-        <TextInput
-          value={draft.capText}
-          onChangeText={(capText) => setDraft((d) => ({ ...d, capText }))}
-          placeholder={`${currency}0`}
-          placeholderTextColor={colors.textMuted}
-          keyboardType="decimal-pad"
-          style={styles.input}
-        />
+        <View style={styles.switchRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.switchTitle}>No monthly limit</Text>
+            <BodySm>Track spend without a cap. Won’t count against room left.</BodySm>
+          </View>
+          <Switch
+            value={draft.noLimit}
+            onValueChange={(noLimit) => setDraft((d) => ({ ...d, noLimit }))}
+            trackColor={{ false: colors.surfaceAlt, true: colors.teal[700] }}
+            thumbColor={draft.noLimit ? colors.teal[300] : colors.textMuted}
+          />
+        </View>
+
+        {draft.noLimit ? null : (
+          <>
+            <Text style={styles.label}>Monthly cap</Text>
+            <TextInput
+              value={draft.capText}
+              onChangeText={(capText) => setDraft((d) => ({ ...d, capText }))}
+              placeholder={`${currency}0`}
+              placeholderTextColor={colors.textMuted}
+              keyboardType="decimal-pad"
+              style={styles.input}
+            />
+          </>
+        )}
+
+        <Text style={styles.label}>How long</Text>
+        <View style={styles.chipRow}>
+          <Chip
+            label="Ongoing"
+            selected={draft.duration === 'ongoing'}
+            onPress={() => setDraft((d) => ({ ...d, duration: 'ongoing' }))}
+          />
+          <Chip
+            label="This month only"
+            selected={draft.duration === 'this-month'}
+            onPress={() => setDraft((d) => ({ ...d, duration: 'this-month' }))}
+          />
+          <Chip
+            label="Next month only"
+            selected={draft.duration === 'next-month'}
+            onPress={() => setDraft((d) => ({ ...d, duration: 'next-month' }))}
+          />
+          {draft.duration === 'custom' && draft.customMonth ? (
+            <Chip
+              label={categoryDurationLabel(draft.customMonth)}
+              selected
+            />
+          ) : null}
+        </View>
 
         <Text style={styles.label}>Icon</Text>
         <View style={styles.chipRow}>
@@ -287,6 +356,18 @@ function makeStyles(colors: ThemeColors) {
       fontSize: 11,
       color: colors.textMuted,
       marginTop: 1,
+    },
+    switchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 12,
+      marginTop: 4,
+    },
+    switchTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
     },
     label: {
       fontFamily: typography.uiBold,

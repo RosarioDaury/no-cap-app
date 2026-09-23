@@ -5,13 +5,15 @@ import { Screen, DisplayTitle, HeaderGear } from '@/src/components';
 import { IncomePane } from '@/src/screens/IncomePane';
 import { DebtPane } from '@/src/screens/DebtPane';
 import { TrendsPane } from '@/src/screens/TrendsPane';
+import { BillsPane } from '@/src/screens/BillsPane';
 import { useTheme } from '@/src/hooks/ThemeProvider';
 import { ThemeColors, type } from '@/src/theme/theme';
 
-type Pane = 'income' | 'debt' | 'trends';
+type Pane = 'income' | 'bills' | 'debt' | 'trends';
 
 const SEGMENTS: { id: Pane; label: string }[] = [
   { id: 'income', label: 'Income' },
+  { id: 'bills', label: 'Bills' },
   { id: 'debt', label: 'Debt' },
   { id: 'trends', label: 'Trends' },
 ];
@@ -45,6 +47,7 @@ export default function MoneyScreen() {
         })}
       </View>
       {pane === 'income' ? <IncomePane /> : null}
+      {pane === 'bills' ? <BillsPane /> : null}
       {pane === 'debt' ? <DebtPane /> : null}
       {pane === 'trends' ? <TrendsPane /> : null}
     </Screen>
@@ -83,7 +86,7 @@ function makeStyles(colors: ThemeColors) {
     },
     segLabel: {
       ...type.rowTitle,
-      fontSize: 12,
+      fontSize: 11,
       color: colors.textMuted,
     },
     segLabelActive: {

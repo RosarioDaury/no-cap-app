@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, Trash2 } from 'lucide-react-native';
-import { Screen, DisplayTitle, BodySm, KeyboardSheet, KeyboardFormScroll, BrandMark, OnboardingProgress } from '@/src/components';
+import { Screen, DisplayTitle, BodySm, KeyboardSheet, KeyboardFormScroll, BrandMark, OnboardingProgress, Chip } from '@/src/components';
 import { ButtonPrimary, ButtonSecondary } from '@/src/components/Buttons';
 import {
   CategoryIcon,
@@ -17,21 +17,29 @@ import { useTheme } from '@/src/hooks/ThemeProvider';
 import { BUDGET_TEMPLATES } from '@/src/db/database';
 import { ThemeColors, TintName, glow, type, typography } from '@/src/theme/theme';
 import { formatMoney, parseMoneyInput } from '@/src/lib/format';
+import {
+  CategoryDuration,
+  activeMonthFromDuration,
+  cycleCategoryDuration,
+  durationChoiceLabel,
+} from '@/src/lib/categories';
 
 type DraftCat = {
   name: string;
   icon: string;
   tint: TintName;
   capText: string;
+  duration: CategoryDuration;
 };
 
 type AddDraft = {
   name: string;
   icon: string;
   tint: TintName;
+  duration: CategoryDuration;
 };
 
-const emptyAdd = (): AddDraft => ({ name: '', icon: 'heart', tint: 'teal' });
+const emptyAdd = (): AddDraft => ({ name: '', icon: 'heart', tint: 'teal', duration: 'ongoing' });
 
 export default function BudgetSetupScreen() {
   const router = useRouter();
@@ -48,6 +56,7 @@ export default function BudgetSetupScreen() {
       icon: c.icon,
       tint: c.tint,
       capText: c.capCents ? String(c.capCents / 100) : '',
+      duration: 'ongoing' as CategoryDuration,
     })),
   );
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,10 +65,7 @@ export default function BudgetSetupScreen() {
   const monthName = new Date().toLocaleDateString('en-US', { month: 'long' });
   const totalCapped = cats.reduce((s, c) => s + parseMoneyInput(c.capText), 0);
 
-  const canContinue = useMemo(
-    () => cats.length > 0 && cats.some((c) => parseMoneyInput(c.capText) > 0),
-    [cats],
-  );
+  const canContinue = cats.length > 0;
 
   const onContinue = async () => {
     setLoading(true);
@@ -73,6 +79,7 @@ export default function BudgetSetupScreen() {
           icon: c.icon,
           tint: c.tint,
           capCents: parseMoneyInput(c.capText),
+          activeMonth: activeMonthFromDuration(c.duration),
         })),
       });
       router.replace('/(tabs)');
@@ -90,7 +97,7 @@ export default function BudgetSetupScreen() {
           How much can each one take this month?
         </DisplayTitle>
         <BodySm style={{ marginBottom: 18 }}>
-          Add a category and a monthly cap. One amount per category — ranged caps are not used in v1.
+          Add a monthly cap, or leave it blank for no limit. You can also make a category last this month or next month only.
         </BodySm>
 
         <View style={styles.totalBlock}>
@@ -125,6 +132,17 @@ export default function BudgetSetupScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.catName}>{c.name}</Text>
+                  <Pressable
+                    onPress={() => {
+                      const next = [...cats];
+                      next[idx] = { ...c, duration: cycleCategoryDuration(c.duration) };
+                      setCats(next);
+                    }}
+                    hitSlop={6}
+                    accessibilityLabel={`${c.name} duration, ${durationChoiceLabel(c.duration)}`}
+                  >
+                    <Text style={styles.durationHint}>{durationChoiceLabel(c.duration)}</Text>
+                  </Pressable>
                   <View style={styles.miniTrack}>
                     <View
                       style={[
@@ -144,7 +162,7 @@ export default function BudgetSetupScreen() {
                     next[idx] = { ...c, capText: t };
                     setCats(next);
                   }}
-                  placeholder="Cap"
+                  placeholder="No limit"
                   placeholderTextColor={colors.textMuted}
                   keyboardType="number-pad"
                   style={styles.capInput}
@@ -246,6 +264,25 @@ export default function BudgetSetupScreen() {
           ))}
         </View>
 
+        <Text style={styles.label}>How long</Text>
+        <View style={styles.chipRow}>
+          <Chip
+            label="Ongoing"
+            selected={addDraft.duration === 'ongoing'}
+            onPress={() => setAddDraft((d) => ({ ...d, duration: 'ongoing' }))}
+          />
+          <Chip
+            label="This month only"
+            selected={addDraft.duration === 'this-month'}
+            onPress={() => setAddDraft((d) => ({ ...d, duration: 'this-month' }))}
+          />
+          <Chip
+            label="Next month only"
+            selected={addDraft.duration === 'next-month'}
+            onPress={() => setAddDraft((d) => ({ ...d, duration: 'next-month' }))}
+          />
+        </View>
+
         <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
           <ButtonSecondary
             label="Cancel"
@@ -267,6 +304,7 @@ export default function BudgetSetupScreen() {
                   icon: addDraft.icon,
                   tint: addDraft.tint,
                   capText: '',
+                  duration: addDraft.duration,
                 },
               ]);
               setAddDraft(emptyAdd());
@@ -324,6 +362,11 @@ function makeStyles(colors: ThemeColors) {
     catName: {
       ...type.rowTitle,
       color: colors.textPrimary,
+      marginBottom: 2,
+    },
+    durationHint: {
+      ...type.meta,
+      color: colors.textMuted,
       marginBottom: 6,
     },
     miniTrack: {

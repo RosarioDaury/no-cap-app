@@ -31,7 +31,8 @@ export async function initDatabase() {
       icon TEXT NOT NULL,
       tint TEXT NOT NULL,
       cap_cents INTEGER NOT NULL,
-      sort_order INTEGER NOT NULL DEFAULT 0
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      active_month TEXT
     );
 
     CREATE TABLE IF NOT EXISTS transactions (
@@ -62,6 +63,31 @@ export async function initDatabase() {
       due_date TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS bills (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      amount_cents INTEGER NOT NULL,
+      due_day INTEGER NOT NULL,
+      reminder_days_before INTEGER NOT NULL DEFAULT 1,
+      reminder_hour INTEGER NOT NULL DEFAULT 9,
+      category_id TEXT,
+      notes TEXT NOT NULL DEFAULT '',
+      reminders_enabled INTEGER NOT NULL DEFAULT 1,
+      FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS bill_payments (
+      id TEXT PRIMARY KEY NOT NULL,
+      bill_id TEXT NOT NULL,
+      month TEXT NOT NULL,
+      amount_cents INTEGER NOT NULL,
+      paid_at TEXT NOT NULL,
+      transaction_id TEXT,
+      FOREIGN KEY (bill_id) REFERENCES bills(id) ON DELETE CASCADE,
+      FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE SET NULL,
+      UNIQUE(bill_id, month)
+    );
+
     INSERT OR IGNORE INTO settings (id) VALUES (1);
   `);
 
@@ -77,6 +103,11 @@ export async function initDatabase() {
   const settingsCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(settings)');
   if (!settingsCols.some((c) => c.name === 'theme')) {
     await db.execAsync(`ALTER TABLE settings ADD COLUMN theme TEXT NOT NULL DEFAULT 'dark'`);
+  }
+
+  const categoryCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(categories)');
+  if (!categoryCols.some((c) => c.name === 'active_month')) {
+    await db.execAsync(`ALTER TABLE categories ADD COLUMN active_month TEXT`);
   }
 
   return db;

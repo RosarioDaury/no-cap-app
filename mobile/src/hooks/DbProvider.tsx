@@ -5,32 +5,41 @@ import {
   pickAndImportBackup,
 } from '@/src/db/backup';
 import {
+  addBill,
   addDebt,
   addGoal,
   addTransaction,
   completeOnboarding,
   contributeToGoal,
+  deleteBill,
   deleteCategory,
   deleteDebt,
   deleteGoal,
   deleteTransaction,
   getCategoriesWithSpend,
   getSettings,
+  listBillPayments,
+  listBillsWithStatus,
   listDebts,
   listGoals,
   listTransactions,
   loadSampleData as seedSampleData,
+  logBillPayment,
   logDebtPayment,
   monthlyExpenseTotals,
   monthlyIncomeTotals,
   resetAllData,
+  undoBillPayment,
+  updateBill,
   updateDebt,
   updateGoal,
   updateSettings,
   updateTransaction,
   upsertCategory,
 } from '@/src/db/repositories';
-import { AppSettings, CategoryWithSpend, Debt, Goal, TintName } from '@/src/db/types';
+import { AppSettings, BillWithStatus, CategoryWithSpend, Debt, Goal, TintName } from '@/src/db/types';
+import { syncBillNotifications } from '@/src/lib/billNotifications';
+import { isCategoryActiveThisMonth } from '@/src/lib/categories';
 
 type GoalInput = {
   id?: string;
@@ -50,18 +59,32 @@ type DebtInput = {
   dueDate?: string | null;
 };
 
+type BillInput = {
+  id?: string;
+  name: string;
+  amountCents: number;
+  dueDay: number;
+  reminderDaysBefore?: number;
+  reminderHour?: number;
+  categoryId?: string | null;
+  notes?: string;
+  remindersEnabled?: number;
+};
+
 type DbContextValue = {
   ready: boolean;
   settings: AppSettings | null;
   categories: CategoryWithSpend[];
+  allCategories: CategoryWithSpend[];
   goals: Goal[];
   debts: Debt[];
+  bills: BillWithStatus[];
   refresh: () => Promise<void>;
   finishOnboarding: (opts: {
     aiConsent: boolean;
     templateId: string;
     displayName?: string;
-    categories?: { name: string; icon: string; tint: TintName; capCents: number }[];
+    categories?: { name: string; icon: string; tint: TintName; capCents: number; activeMonth?: string | null }[];
   }) => Promise<void>;
   logExpense: (opts: {
     categoryId: string;
@@ -77,6 +100,7 @@ type DbContextValue = {
     tint: TintName;
     capCents: number;
     sortOrder?: number;
+    activeMonth?: string | null;
   }) => Promise<string>;
   removeCategory: (id: string) => Promise<void>;
   saveGoal: (input: GoalInput) => Promise<string>;
@@ -85,6 +109,10 @@ type DbContextValue = {
   saveDebt: (input: DebtInput) => Promise<string>;
   removeDebt: (id: string) => Promise<void>;
   payDebt: (id: string, amountCents: number) => Promise<void>;
+  saveBill: (input: BillInput) => Promise<string>;
+  removeBill: (id: string) => Promise<void>;
+  payBill: (id: string, amountCents?: number) => Promise<void>;
+  unpayBill: (id: string) => Promise<void>;
   saveTransaction: (input: {
     id: string;
     categoryId?: string | null;
@@ -117,8 +145,10 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [categories, setCategories] = useState<CategoryWithSpend[]>([]);
+  const [allCategories, setAllCategories] = useState<CategoryWithSpend[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
+  const [bills, setBills] = useState<BillWithStatus[]>([]);
   const [incomeTransactions, setIncomeTransactions] = useState<
     Awaited<ReturnType<typeof listTransactions>>
   >([]);
@@ -126,22 +156,27 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
   const [incomeHistory, setIncomeHistory] = useState<{ month: string; totalCents: number }[]>([]);
 
   const refresh = useCallback(async () => {
-    const [s, cats, g, d, income, hist, incomeHist] = await Promise.all([
+    const [s, cats, g, d, billRows, income, hist, incomeHist, payments] = await Promise.all([
       getSettings(),
       getCategoriesWithSpend(),
       listGoals(),
       listDebts(),
+      listBillsWithStatus(),
       listTransactions({ type: 'income', limit: 50 }),
       monthlyExpenseTotals(6),
       monthlyIncomeTotals(6),
+      listBillPayments(),
     ]);
     setSettings(s);
-    setCategories(cats);
+    setAllCategories(cats);
+    setCategories(cats.filter((c) => isCategoryActiveThisMonth(c.activeMonth)));
     setGoals(g);
     setDebts(d);
+    setBills(billRows);
     setIncomeTransactions(income);
     setHistory(hist);
     setIncomeHistory(incomeHist);
+    await syncBillNotifications(billRows, payments, s.currency).catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -158,8 +193,10 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
       ready,
       settings,
       categories,
+      allCategories,
       goals,
       debts,
+      bills,
       refresh,
       finishOnboarding: async (opts) => {
         await completeOnboarding(opts);
@@ -247,6 +284,38 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
         await logDebtPayment(id, amountCents);
         await refresh();
       },
+      saveBill: async (input) => {
+        if (input.id) {
+          await updateBill({
+            id: input.id,
+            name: input.name,
+            amountCents: input.amountCents,
+            dueDay: input.dueDay,
+            reminderDaysBefore: input.reminderDaysBefore ?? 1,
+            reminderHour: input.reminderHour ?? 9,
+            categoryId: input.categoryId ?? null,
+            notes: input.notes ?? '',
+            remindersEnabled: input.remindersEnabled ?? 1,
+          });
+          await refresh();
+          return input.id;
+        }
+        const id = await addBill(input);
+        await refresh();
+        return id;
+      },
+      removeBill: async (id) => {
+        await deleteBill(id);
+        await refresh();
+      },
+      payBill: async (id, amountCents) => {
+        await logBillPayment({ billId: id, amountCents });
+        await refresh();
+      },
+      unpayBill: async (id) => {
+        await undoBillPayment(id);
+        await refresh();
+      },
       saveTransaction: async (input) => {
         await updateTransaction(input);
         await refresh();
@@ -281,7 +350,7 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
       history,
       incomeHistory,
     }),
-    [ready, settings, categories, goals, debts, refresh, incomeTransactions, history, incomeHistory],
+    [ready, settings, categories, allCategories, goals, debts, bills, refresh, incomeTransactions, history, incomeHistory],
   );
 
   return <DbContext.Provider value={value}>{children}</DbContext.Provider>;

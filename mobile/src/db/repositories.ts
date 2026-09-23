@@ -1,6 +1,9 @@
 import { getDb, newId, BUDGET_TEMPLATES } from '@/src/db/database';
 import {
   AppSettings,
+  Bill,
+  BillPayment,
+  BillWithStatus,
   Category,
   CategoryWithSpend,
   Debt,
@@ -10,6 +13,7 @@ import {
   Transaction,
 } from '@/src/db/types';
 import { todayISO } from '@/src/lib/format';
+import { monthKey, withBillStatus } from '@/src/lib/bills';
 
 function monthStart(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
@@ -68,6 +72,26 @@ export async function updateSettings(
   );
 }
 
+function mapCategory(r: {
+  id: string;
+  name: string;
+  icon: string;
+  tint: TintName;
+  cap_cents: number;
+  sort_order: number;
+  active_month?: string | null;
+}): Category {
+  return {
+    id: r.id,
+    name: r.name,
+    icon: r.icon,
+    tint: r.tint,
+    capCents: r.cap_cents,
+    sortOrder: r.sort_order,
+    activeMonth: r.active_month ?? null,
+  };
+}
+
 export async function listCategories(): Promise<Category[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<{
@@ -77,15 +101,9 @@ export async function listCategories(): Promise<Category[]> {
     tint: TintName;
     cap_cents: number;
     sort_order: number;
+    active_month: string | null;
   }>('SELECT * FROM categories ORDER BY sort_order ASC, name ASC');
-  return rows.map((r) => ({
-    id: r.id,
-    name: r.name,
-    icon: r.icon,
-    tint: r.tint,
-    capCents: r.cap_cents,
-    sortOrder: r.sort_order,
-  }));
+  return rows.map(mapCategory);
 }
 
 export async function getCategory(id: string): Promise<Category | null> {
@@ -97,16 +115,10 @@ export async function getCategory(id: string): Promise<Category | null> {
     tint: TintName;
     cap_cents: number;
     sort_order: number;
+    active_month: string | null;
   }>('SELECT * FROM categories WHERE id = ?', [id]);
   if (!r) return null;
-  return {
-    id: r.id,
-    name: r.name,
-    icon: r.icon,
-    tint: r.tint,
-    capCents: r.cap_cents,
-    sortOrder: r.sort_order,
-  };
+  return mapCategory(r);
 }
 
 export async function upsertCategory(input: {
@@ -116,18 +128,20 @@ export async function upsertCategory(input: {
   tint: TintName;
   capCents: number;
   sortOrder?: number;
+  activeMonth?: string | null;
 }) {
   const db = await getDb();
   const id = input.id ?? newId('cat');
   await db.runAsync(
-    `INSERT INTO categories (id, name, icon, tint, cap_cents, sort_order)
-     VALUES (?, ?, ?, ?, ?, ?)
+    `INSERT INTO categories (id, name, icon, tint, cap_cents, sort_order, active_month)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET
        name = excluded.name,
        icon = excluded.icon,
        tint = excluded.tint,
        cap_cents = excluded.cap_cents,
-       sort_order = excluded.sort_order`,
+       sort_order = excluded.sort_order,
+       active_month = excluded.active_month`,
     [
       id,
       input.name,
@@ -135,6 +149,7 @@ export async function upsertCategory(input: {
       input.tint,
       input.capCents,
       input.sortOrder ?? 0,
+      input.activeMonth ?? null,
     ],
   );
   return id;
@@ -144,6 +159,7 @@ export async function upsertCategory(input: {
 export async function deleteCategory(id: string) {
   const db = await getDb();
   await db.runAsync('UPDATE transactions SET category_id = NULL WHERE category_id = ?', [id]);
+  await db.runAsync('UPDATE bills SET category_id = NULL WHERE category_id = ?', [id]);
   await db.runAsync('DELETE FROM categories WHERE id = ?', [id]);
 }
 
@@ -159,6 +175,7 @@ export async function replaceCategoriesFromTemplate(templateId: string) {
       tint: c.tint,
       capCents: c.capCents,
       sortOrder: i,
+      activeMonth: null,
     });
   }
 }
@@ -172,6 +189,7 @@ export async function getCategoriesWithSpend(month = monthStart()): Promise<Cate
     tint: TintName;
     cap_cents: number;
     sort_order: number;
+    active_month: string | null;
     spent: number | null;
   }>(
     `SELECT c.*, COALESCE(SUM(CASE WHEN t.type = 'expense' AND t.date >= ? THEN t.amount_cents ELSE 0 END), 0) AS spent
@@ -182,12 +200,7 @@ export async function getCategoriesWithSpend(month = monthStart()): Promise<Cate
     [month],
   );
   return rows.map((r) => ({
-    id: r.id,
-    name: r.name,
-    icon: r.icon,
-    tint: r.tint,
-    capCents: r.cap_cents,
-    sortOrder: r.sort_order,
+    ...mapCategory(r),
     spentCents: r.spent ?? 0,
   }));
 }
@@ -498,6 +511,216 @@ export async function deleteDebt(id: string) {
   await db.runAsync('DELETE FROM debts WHERE id = ?', [id]);
 }
 
+function mapBill(r: {
+  id: string;
+  name: string;
+  amount_cents: number;
+  due_day: number;
+  reminder_days_before: number;
+  reminder_hour: number;
+  category_id: string | null;
+  notes: string;
+  reminders_enabled: number;
+}): Bill {
+  return {
+    id: r.id,
+    name: r.name,
+    amountCents: r.amount_cents,
+    dueDay: r.due_day,
+    reminderDaysBefore: r.reminder_days_before,
+    reminderHour: r.reminder_hour,
+    categoryId: r.category_id,
+    notes: r.notes ?? '',
+    remindersEnabled: r.reminders_enabled ? 1 : 0,
+  };
+}
+
+export async function listBills(): Promise<Bill[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{
+    id: string;
+    name: string;
+    amount_cents: number;
+    due_day: number;
+    reminder_days_before: number;
+    reminder_hour: number;
+    category_id: string | null;
+    notes: string;
+    reminders_enabled: number;
+  }>('SELECT * FROM bills ORDER BY due_day ASC, name ASC');
+  return rows.map(mapBill);
+}
+
+export async function listBillPayments(): Promise<BillPayment[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{
+    id: string;
+    bill_id: string;
+    month: string;
+    amount_cents: number;
+    paid_at: string;
+    transaction_id: string | null;
+  }>('SELECT * FROM bill_payments');
+  return rows.map((r) => ({
+    id: r.id,
+    billId: r.bill_id,
+    month: r.month,
+    amountCents: r.amount_cents,
+    paidAt: r.paid_at,
+    transactionId: r.transaction_id,
+  }));
+}
+
+export async function listBillsWithStatus(month = monthKey()): Promise<BillWithStatus[]> {
+  const bills = await listBills();
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ bill_id: string; amount_cents: number }>(
+    'SELECT bill_id, amount_cents FROM bill_payments WHERE month = ?',
+    [month],
+  );
+  const paid = new Map(rows.map((r) => [r.bill_id, r.amount_cents]));
+  return bills
+    .map((bill) => withBillStatus(bill, paid.get(bill.id) ?? 0))
+    .sort((a, b) => {
+      if (a.paidThisMonth !== b.paidThisMonth) return a.paidThisMonth ? 1 : -1;
+      return a.daysUntilDue - b.daysUntilDue;
+    });
+}
+
+export async function addBill(input: {
+  name: string;
+  amountCents: number;
+  dueDay: number;
+  reminderDaysBefore?: number;
+  reminderHour?: number;
+  categoryId?: string | null;
+  notes?: string;
+  remindersEnabled?: number;
+}) {
+  const db = await getDb();
+  const id = newId('bill');
+  await db.runAsync(
+    `INSERT INTO bills (
+      id, name, amount_cents, due_day, reminder_days_before, reminder_hour,
+      category_id, notes, reminders_enabled
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id,
+      input.name,
+      input.amountCents,
+      Math.min(31, Math.max(1, input.dueDay)),
+      input.reminderDaysBefore ?? 1,
+      input.reminderHour ?? 9,
+      input.categoryId ?? null,
+      input.notes ?? '',
+      input.remindersEnabled ?? 1,
+    ],
+  );
+  return id;
+}
+
+export async function updateBill(input: {
+  id: string;
+  name: string;
+  amountCents: number;
+  dueDay: number;
+  reminderDaysBefore: number;
+  reminderHour: number;
+  categoryId?: string | null;
+  notes?: string;
+  remindersEnabled: number;
+}) {
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE bills SET
+      name = ?,
+      amount_cents = ?,
+      due_day = ?,
+      reminder_days_before = ?,
+      reminder_hour = ?,
+      category_id = ?,
+      notes = ?,
+      reminders_enabled = ?
+     WHERE id = ?`,
+    [
+      input.name,
+      input.amountCents,
+      Math.min(31, Math.max(1, input.dueDay)),
+      input.reminderDaysBefore,
+      input.reminderHour,
+      input.categoryId ?? null,
+      input.notes ?? '',
+      input.remindersEnabled,
+      input.id,
+    ],
+  );
+}
+
+export async function deleteBill(id: string) {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM bill_payments WHERE bill_id = ?', [id]);
+  await db.runAsync('DELETE FROM bills WHERE id = ?', [id]);
+}
+
+export async function logBillPayment(input: {
+  billId: string;
+  month?: string;
+  amountCents?: number;
+}) {
+  const bills = await listBills();
+  const bill = bills.find((b) => b.id === input.billId);
+  if (!bill) throw new Error('Bill not found');
+  const month = input.month ?? monthKey();
+  const amount = input.amountCents ?? bill.amountCents;
+  if (amount <= 0) throw new Error('Amount must be greater than zero');
+
+  const db = await getDb();
+  const existing = await db.getFirstAsync<{ id: string; transaction_id: string | null }>(
+    'SELECT id, transaction_id FROM bill_payments WHERE bill_id = ? AND month = ?',
+    [bill.id, month],
+  );
+  if (existing) {
+    await db.runAsync('UPDATE bill_payments SET amount_cents = ?, paid_at = ? WHERE id = ?', [
+      amount,
+      todayISO(),
+      existing.id,
+    ]);
+    return existing.id;
+  }
+
+  let transactionId: string | null = null;
+  if (bill.categoryId) {
+    transactionId = await addTransaction({
+      categoryId: bill.categoryId,
+      amountCents: amount,
+      note: bill.notes ? `${bill.name} · ${bill.notes}` : bill.name,
+      date: todayISO(),
+      type: 'expense',
+    });
+  }
+
+  const id = newId('bpay');
+  await db.runAsync(
+    `INSERT INTO bill_payments (id, bill_id, month, amount_cents, paid_at, transaction_id)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [id, bill.id, month, amount, todayISO(), transactionId],
+  );
+  return id;
+}
+
+export async function undoBillPayment(billId: string, month = monthKey()) {
+  const db = await getDb();
+  const existing = await db.getFirstAsync<{ id: string; transaction_id: string | null }>(
+    'SELECT id, transaction_id FROM bill_payments WHERE bill_id = ? AND month = ?',
+    [billId, month],
+  );
+  if (!existing) return;
+  if (existing.transaction_id) {
+    await db.runAsync('DELETE FROM transactions WHERE id = ?', [existing.transaction_id]);
+  }
+  await db.runAsync('DELETE FROM bill_payments WHERE id = ?', [existing.id]);
+}
+
 /**
  * Opt-in sample data for demos. Never called automatically after onboarding.
  * Keeps existing categories. With `force`, clears goals/debts/transactions first.
@@ -507,7 +730,9 @@ export async function loadSampleData(opts?: { force?: boolean }) {
   const db = await getDb();
 
   if (force) {
-    await db.execAsync('DELETE FROM transactions; DELETE FROM goals; DELETE FROM debts;');
+    await db.execAsync(
+      'DELETE FROM bill_payments; DELETE FROM bills; DELETE FROM transactions; DELETE FROM goals; DELETE FROM debts;',
+    );
   }
 
   let categories = await listCategories();
@@ -540,6 +765,36 @@ export async function loadSampleData(opts?: { force?: boolean }) {
       originalBalanceCents: 5000000,
       paymentCents: 400000,
       dueDate: '2026-08-15',
+    });
+  }
+
+  if ((await listBills()).length === 0) {
+    const byName = Object.fromEntries((await listCategories()).map((c) => [c.name, c.id]));
+    const utilitiesId = byName['Utilities & bills'] ?? null;
+    await addBill({
+      name: 'Internet',
+      amountCents: 215000,
+      dueDay: 5,
+      reminderDaysBefore: 1,
+      reminderHour: 9,
+      categoryId: utilitiesId,
+      notes: 'Monthly fiber',
+    });
+    await addBill({
+      name: 'Phone',
+      amountCents: 120000,
+      dueDay: 12,
+      reminderDaysBefore: 2,
+      reminderHour: 9,
+      categoryId: utilitiesId,
+    });
+    await addBill({
+      name: 'Rent',
+      amountCents: 2500000,
+      dueDay: 1,
+      reminderDaysBefore: 3,
+      reminderHour: 9,
+      categoryId: utilitiesId,
     });
   }
 
@@ -591,12 +846,12 @@ export async function loadSampleData(opts?: { force?: boolean }) {
 export async function completeOnboarding(opts: {
   aiConsent: boolean;
   templateId: string;
-  categories?: { name: string; icon: string; tint: TintName; capCents: number }[];
+  categories?: { name: string; icon: string; tint: TintName; capCents: number; activeMonth?: string | null }[];
   displayName?: string;
 }) {
   const db = await getDb();
   await db.execAsync(
-    'DELETE FROM transactions; DELETE FROM categories; DELETE FROM goals; DELETE FROM debts;',
+    'DELETE FROM bill_payments; DELETE FROM bills; DELETE FROM transactions; DELETE FROM categories; DELETE FROM goals; DELETE FROM debts;',
   );
   const template = BUDGET_TEMPLATES.find((t) => t.id === opts.templateId) ?? BUDGET_TEMPLATES[0];
   const source = opts.categories?.length
@@ -606,6 +861,7 @@ export async function completeOnboarding(opts: {
         icon: c.icon,
         tint: c.tint,
         capCents: c.capCents,
+        activeMonth: null as string | null,
       }));
   for (let i = 0; i < source.length; i++) {
     const c = source[i];
@@ -615,6 +871,7 @@ export async function completeOnboarding(opts: {
       tint: c.tint,
       capCents: c.capCents,
       sortOrder: i,
+      activeMonth: c.activeMonth ?? null,
     });
   }
   // No sample seed — user starts clean. Use Settings → Load sample data.
@@ -629,6 +886,8 @@ export async function completeOnboarding(opts: {
 export async function resetAllData(): Promise<void> {
   const db = await getDb();
   await db.execAsync(`
+    DELETE FROM bill_payments;
+    DELETE FROM bills;
     DELETE FROM transactions;
     DELETE FROM categories;
     DELETE FROM goals;

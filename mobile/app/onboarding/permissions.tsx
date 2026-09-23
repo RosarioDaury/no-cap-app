@@ -1,18 +1,20 @@
-import { useMemo } from 'react';
-import { View, Text, TextInput, Switch, StyleSheet, Alert } from 'react-native';
+import { useMemo, useState } from 'react';
+import { View, Text, TextInput, Switch, StyleSheet, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Lock } from 'lucide-react-native';
+import { Lock, Bell } from 'lucide-react-native';
 import { Screen, DisplayTitle, BodySm, Card, KeyboardFormScroll, BrandMark, OnboardingProgress } from '@/src/components';
 import { ButtonPrimary } from '@/src/components/Buttons';
 import { useOnboarding } from '@/src/hooks/OnboardingContext';
 import { useTheme } from '@/src/hooks/ThemeProvider';
 import { ThemeColors, typography } from '@/src/theme/theme';
+import { requestReminderPermission } from '@/src/lib/billNotifications';
 
 export default function PermissionsScreen() {
   const router = useRouter();
   const { displayName, setDisplayName, aiConsent, setAiConsent } = useOnboarding();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const [billReminders, setBillReminders] = useState(false);
 
   const onContinue = () => {
     if (!displayName.trim()) {
@@ -72,6 +74,41 @@ export default function PermissionsScreen() {
               trackColor={{ false: colors.surfaceAlt, true: colors.teal[700] }}
               thumbColor={aiConsent ? colors.teal[300] : colors.textMuted}
             />
+          </View>
+        </Card>
+
+        <Card style={{ marginBottom: 12 }}>
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.title}>Bill reminders</Text>
+              <BodySm>
+                Optional. Local notifications on this phone when rent, internet, or other monthly
+                bills are due.
+              </BodySm>
+            </View>
+            {Platform.OS === 'web' ? (
+              <Bell size={16} color={colors.textMuted} style={{ marginTop: 2 }} />
+            ) : (
+              <Switch
+                value={billReminders}
+                onValueChange={async (next) => {
+                  if (!next) {
+                    setBillReminders(false);
+                    return;
+                  }
+                  const granted = await requestReminderPermission();
+                  setBillReminders(granted);
+                  if (!granted) {
+                    Alert.alert(
+                      'Reminders not enabled',
+                      'You can turn them on later when you add a bill.',
+                    );
+                  }
+                }}
+                trackColor={{ false: colors.surfaceAlt, true: colors.teal[700] }}
+                thumbColor={billReminders ? colors.teal[300] : colors.textMuted}
+              />
+            )}
           </View>
         </Card>
 

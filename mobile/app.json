@@ -41,7 +41,15 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#22D3EE",
+          "defaultChannel": "bills"
+        }
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
@@ -50,7 +58,8 @@
       "router": {},
       "eas": {
         "projectId": "e9237cd0-5bdb-47d7-99d6-b97e5ad60f82"
-      }
+      },
+      "apiUrl": "http://127.0.0.1:8000"
     }
   }
 }

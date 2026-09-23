@@ -30,7 +30,7 @@ import {
 import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
 import { Goal } from '@/src/db/types';
-import { formatMoney, formatShortDate, parseMoneyInput } from '@/src/lib/format';
+import { formatMoney, formatShortDate, hasMonthlyCap, parseMoneyInput } from '@/src/lib/format';
 import { ThemeColors, radius, type, typography } from '@/src/theme/theme';
 
 type GoalDraft = {
@@ -61,8 +61,9 @@ export default function GoalsScreen() {
   const iconBg = useIconBg();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const currency = settings?.currency ?? 'RD$';
-  const totalCap = categories.reduce((s, c) => s + c.capCents, 0);
-  const totalSpent = categories.reduce((s, c) => s + c.spentCents, 0);
+  const capped = categories.filter((c) => hasMonthlyCap(c.capCents));
+  const totalCap = capped.reduce((s, c) => s + c.capCents, 0);
+  const totalSpent = capped.reduce((s, c) => s + c.spentCents, 0);
   const room = Math.max(0, totalCap - totalSpent);
 
   const [goalModal, setGoalModal] = useState(false);

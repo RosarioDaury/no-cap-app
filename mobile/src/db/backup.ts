@@ -4,33 +4,48 @@ import * as DocumentPicker from 'expo-document-picker';
 import { getDb } from '@/src/db/database';
 import {
   getSettings,
+  listBillPayments,
+  listBills,
   listCategories,
   listDebts,
   listGoals,
   listTransactions,
   updateSettings,
 } from '@/src/db/repositories';
-import { AppSettings, Category, Debt, Goal, TintName, Transaction } from '@/src/db/types';
+import {
+  AppSettings,
+  Bill,
+  BillPayment,
+  Category,
+  Debt,
+  Goal,
+  TintName,
+  Transaction,
+} from '@/src/db/types';
 
-export const BACKUP_VERSION = 1 as const;
+export const BACKUP_VERSION = 2 as const;
 
 export type BackupPayload = {
-  version: typeof BACKUP_VERSION;
+  version: 1 | typeof BACKUP_VERSION;
   exportedAt: string;
   settings: AppSettings;
   categories: Category[];
   transactions: Transaction[];
   goals: Goal[];
   debts: Debt[];
+  bills?: Bill[];
+  billPayments?: BillPayment[];
 };
 
 export async function buildBackupPayload(): Promise<BackupPayload> {
-  const [settings, categories, transactions, goals, debts] = await Promise.all([
+  const [settings, categories, transactions, goals, debts, bills, billPayments] = await Promise.all([
     getSettings(),
     listCategories(),
     listTransactions({ limit: 10000 }),
     listGoals(),
     listDebts(),
+    listBills(),
+    listBillPayments(),
   ]);
   return {
     version: BACKUP_VERSION,
@@ -40,6 +55,8 @@ export async function buildBackupPayload(): Promise<BackupPayload> {
     transactions,
     goals,
     debts,
+    bills,
+    billPayments,
   };
 }
 
@@ -76,7 +93,7 @@ export function parseBackupJson(raw: string): BackupPayload {
     throw new Error('Invalid backup format');
   }
   const obj = data as Record<string, unknown>;
-  if (obj.version !== BACKUP_VERSION) {
+  if (obj.version !== 1 && obj.version !== 2) {
     throw new Error(`Unsupported backup version (${String(obj.version)})`);
   }
   if (!obj.settings || !Array.isArray(obj.categories) || !Array.isArray(obj.transactions)) {
@@ -88,15 +105,15 @@ export function parseBackupJson(raw: string): BackupPayload {
 export async function importBackupReplace(payload: BackupPayload): Promise<void> {
   const db = await getDb();
   await db.execAsync(
-    'DELETE FROM transactions; DELETE FROM categories; DELETE FROM goals; DELETE FROM debts;',
+    'DELETE FROM bill_payments; DELETE FROM bills; DELETE FROM transactions; DELETE FROM categories; DELETE FROM goals; DELETE FROM debts;',
   );
 
   for (const c of payload.categories) {
     if (!c?.id || !c.name || !isTint(c.tint)) continue;
     await db.runAsync(
-      `INSERT INTO categories (id, name, icon, tint, cap_cents, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [c.id, c.name, c.icon || 'heart', c.tint, c.capCents ?? 0, c.sortOrder ?? 0],
+      `INSERT INTO categories (id, name, icon, tint, cap_cents, sort_order, active_month)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [c.id, c.name, c.icon || 'heart', c.tint, c.capCents ?? 0, c.sortOrder ?? 0, c.activeMonth ?? null],
     );
   }
 
@@ -140,6 +157,36 @@ export async function importBackupReplace(payload: BackupPayload): Promise<void>
       `INSERT INTO debts (id, name, balance_cents, original_balance_cents, payment_cents, due_date)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [d.id, d.name, balance, original, d.paymentCents ?? 0, d.dueDate ?? null],
+    );
+  }
+
+  for (const b of payload.bills ?? []) {
+    if (!b?.id || !b.name) continue;
+    await db.runAsync(
+      `INSERT INTO bills (
+        id, name, amount_cents, due_day, reminder_days_before, reminder_hour,
+        category_id, notes, reminders_enabled
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        b.id,
+        b.name,
+        b.amountCents ?? 0,
+        Math.min(31, Math.max(1, b.dueDay ?? 1)),
+        b.reminderDaysBefore ?? 1,
+        b.reminderHour ?? 9,
+        b.categoryId ?? null,
+        b.notes ?? '',
+        b.remindersEnabled ?? 1,
+      ],
+    );
+  }
+
+  for (const p of payload.billPayments ?? []) {
+    if (!p?.id || !p.billId || !p.month) continue;
+    await db.runAsync(
+      `INSERT INTO bill_payments (id, bill_id, month, amount_cents, paid_at, transaction_id)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [p.id, p.billId, p.month, p.amountCents ?? 0, p.paidAt, p.transactionId ?? null],
     );
   }
 

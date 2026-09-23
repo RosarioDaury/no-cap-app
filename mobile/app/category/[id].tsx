@@ -9,6 +9,7 @@ import {
   UIManager,
   Alert,
   Pressable,
+  Switch,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
@@ -35,10 +36,17 @@ import { Category, Transaction } from '@/src/db/types';
 import {
   formatMoney,
   formatShortDate,
+  hasMonthlyCap,
   parseMoneyInput,
   progressRatio,
   tintForProgress,
 } from '@/src/lib/format';
+import {
+  CategoryDuration,
+  activeMonthFromDuration,
+  categoryDurationLabel,
+  durationFromActiveMonth,
+} from '@/src/lib/categories';
 import { ThemeColors, type, typography } from '@/src/theme/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -61,6 +69,7 @@ export default function CategoryDetailScreen() {
   const router = useRouter();
   const {
     categories,
+    allCategories,
     settings,
     logExpense,
     refresh,
@@ -71,12 +80,15 @@ export default function CategoryDetailScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const currency = settings?.currency ?? 'RD$';
-  const live = categories.find((c) => c.id === id);
+  const live = allCategories.find((c) => c.id === id) ?? categories.find((c) => c.id === id);
   const [category, setCategory] = useState<Category | null>(null);
   const [txns, setTxns] = useState<TxnRow[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [capModal, setCapModal] = useState(false);
   const [capText, setCapText] = useState('');
+  const [noLimit, setNoLimit] = useState(false);
+  const [duration, setDuration] = useState<CategoryDuration>('ongoing');
+  const [customMonth, setCustomMonth] = useState<string | null>(null);
   const [savingCap, setSavingCap] = useState(false);
   const [edit, setEdit] = useState<EditDraft | null>(null);
   const [savingTxn, setSavingTxn] = useState(false);
@@ -91,23 +103,34 @@ export default function CategoryDetailScreen() {
 
   useEffect(() => {
     load();
-  }, [load, live?.spentCents, live?.capCents]);
+  }, [load, live?.spentCents, live?.capCents, live?.activeMonth]);
 
   const spent = live?.spentCents ?? 0;
   const cap = live?.capCents ?? category?.capCents ?? 0;
+  const capped = hasMonthlyCap(cap);
   const tintBase = live?.tint ?? category?.tint ?? 'teal';
   const progress = progressRatio(spent, cap);
-  const tint = tintForProgress(progress, tintBase);
+  const tint = capped ? tintForProgress(progress, tintBase) : tintBase;
   const name = live?.name ?? category?.name ?? 'Category';
+  const activeMonth = live?.activeMonth ?? category?.activeMonth ?? null;
 
   const openEditCap = () => {
-    setCapText(cap ? String(cap / 100) : '');
+    const source = live ?? category;
+    setCapText(capped ? String(cap / 100) : '');
+    setNoLimit(!capped);
+    setDuration(durationFromActiveMonth(source?.activeMonth ?? null));
+    setCustomMonth(source?.activeMonth ?? null);
     setCapModal(true);
   };
 
   const saveCap = async () => {
     const source = live ?? category;
     if (!source || !id) return;
+    const capCents = noLimit ? 0 : parseMoneyInput(capText);
+    if (!noLimit && capCents <= 0) {
+      Alert.alert('Monthly cap', 'Enter a cap, or turn on no monthly limit.');
+      return;
+    }
     setSavingCap(true);
     try {
       await saveCategory({
@@ -115,8 +138,9 @@ export default function CategoryDetailScreen() {
         name: source.name,
         icon: source.icon,
         tint: source.tint,
-        capCents: parseMoneyInput(capText),
+        capCents,
         sortOrder: source.sortOrder,
+        activeMonth: activeMonthFromDuration(duration, customMonth),
       });
       await load();
       setCapModal(false);
@@ -206,10 +230,13 @@ export default function CategoryDetailScreen() {
               <Text style={styles.amount}>{formatMoney(spent, currency)}</Text>
               <View style={styles.pctRow}>
                 <BodySm>
-                  of {formatMoney(cap, currency)} · {Math.round(progress * 100)}%
+                  {capped
+                    ? `of ${formatMoney(cap, currency)} · ${Math.round(progress * 100)}%`
+                    : 'No monthly limit'}
+                  {activeMonth ? ` · ${categoryDurationLabel(activeMonth)}` : ''}
                 </BodySm>
                 <Pressable onPress={openEditCap} hitSlop={8}>
-                  <Text style={styles.editCap}>Edit cap</Text>
+                  <Text style={styles.editCap}>{capped ? 'Edit cap' : 'Edit'}</Text>
                 </Pressable>
               </View>
             </View>
@@ -225,7 +252,7 @@ export default function CategoryDetailScreen() {
             <QuickLogPanel
               categoryName={name}
               currencySymbol={currency}
-              remainingCapCents={cap - spent}
+              remainingCapCents={capped ? cap - spent : undefined}
               onCancel={() => {
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setExpanded(false);
@@ -265,18 +292,52 @@ export default function CategoryDetailScreen() {
 
       </KeyboardFormScroll>
 
-      <KeyboardSheet visible={capModal} onRequestClose={() => setCapModal(false)}>
-        <DisplayTitle style={{ fontSize: 18, marginBottom: 8 }}>Edit cap</DisplayTitle>
-        <BodySm style={{ marginBottom: 12 }}>Monthly limit for {name}</BodySm>
-        <TextInput
-          value={capText}
-          onChangeText={setCapText}
-          placeholder={`${currency}0`}
-          placeholderTextColor={colors.textMuted}
-          keyboardType="decimal-pad"
-          style={styles.input}
-          autoFocus
-        />
+      <KeyboardSheet visible={capModal} onRequestClose={() => setCapModal(false)} scroll>
+        <DisplayTitle style={{ fontSize: 18, marginBottom: 8 }}>Edit category</DisplayTitle>
+        <BodySm style={{ marginBottom: 12 }}>{name}</BodySm>
+        <View style={styles.switchRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.switchTitle}>No monthly limit</Text>
+          </View>
+          <Switch
+            value={noLimit}
+            onValueChange={setNoLimit}
+            trackColor={{ false: colors.surfaceAlt, true: colors.teal[700] }}
+            thumbColor={noLimit ? colors.teal[300] : colors.textMuted}
+          />
+        </View>
+        {noLimit ? null : (
+          <TextInput
+            value={capText}
+            onChangeText={setCapText}
+            placeholder={`${currency}0`}
+            placeholderTextColor={colors.textMuted}
+            keyboardType="decimal-pad"
+            style={styles.input}
+            autoFocus
+          />
+        )}
+        <Text style={styles.label}>How long</Text>
+        <View style={styles.chips}>
+          <Chip
+            label="Ongoing"
+            selected={duration === 'ongoing'}
+            onPress={() => setDuration('ongoing')}
+          />
+          <Chip
+            label="This month only"
+            selected={duration === 'this-month'}
+            onPress={() => setDuration('this-month')}
+          />
+          <Chip
+            label="Next month only"
+            selected={duration === 'next-month'}
+            onPress={() => setDuration('next-month')}
+          />
+          {duration === 'custom' && customMonth ? (
+            <Chip label={categoryDurationLabel(customMonth)} selected />
+          ) : null}
+        </View>
         <View style={styles.actions}>
           <ButtonSecondary
             label="Cancel"
@@ -321,7 +382,7 @@ export default function CategoryDetailScreen() {
 
         <Text style={styles.label}>Category</Text>
         <View style={styles.chips}>
-          {categories.map((c) => (
+          {allCategories.map((c) => (
             <Chip
               key={c.id}
               label={c.name.split(' ')[0]}
@@ -433,6 +494,17 @@ function makeStyles(colors: ThemeColors) {
       flexWrap: 'wrap',
       gap: 8,
       marginBottom: 14,
+    },
+    switchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 12,
+    },
+    switchTitle: {
+      fontFamily: typography.uiSemiBold,
+      fontSize: 13,
+      color: colors.textPrimary,
     },
     actions: {
       flexDirection: 'row',

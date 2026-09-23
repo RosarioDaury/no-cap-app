@@ -20,7 +20,7 @@ import {
 } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
-import { formatMoney, parseMoneyInput, todayISO } from '@/src/lib/format';
+import { formatMoney, hasMonthlyCap, parseMoneyInput, todayISO } from '@/src/lib/format';
 import { listTransactions } from '@/src/db/repositories';
 import { ThemeColors, glow, type } from '@/src/theme/theme';
 
@@ -70,7 +70,10 @@ export default function AddExpenseModal() {
 
   const amountCents = useMemo(() => parseMoneyInput(raw), [raw]);
   const selected = categories.find((c) => c.id === categoryId);
-  const leftover = selected ? selected.capCents - selected.spentCents - amountCents : null;
+  const leftover =
+    selected && hasMonthlyCap(selected.capCents)
+      ? selected.capCents - selected.spentCents - amountCents
+      : null;
 
   const ordered = useMemo(() => {
     const recent = recentIds
@@ -246,7 +249,9 @@ export default function AddExpenseModal() {
         </LinearGradient>
       </Pressable>
 
-      {selected && leftover != null ? (
+      {selected && leftover == null && !hasMonthlyCap(selected.capCents) ? (
+        <Text style={styles.footer}>No limit on {selected.name}</Text>
+      ) : selected && leftover != null ? (
         <Text style={[styles.footer, leftover < 0 && { color: colors.coral[500] }]}>
           {leftover < 0
             ? `Puts ${selected.name} ${formatMoney(Math.abs(leftover), currency)} over`

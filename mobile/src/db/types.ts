@@ -18,6 +18,7 @@ export type Category = {
   tint: TintName;
   capCents: number;
   sortOrder: number;
+  activeMonth: string | null;
 };
 
 export type CategoryWithSpend = Category & {
@@ -49,6 +50,34 @@ export type Debt = {
   originalBalanceCents: number;
   paymentCents: number;
   dueDate: string | null;
+};
+
+export type Bill = {
+  id: string;
+  name: string;
+  amountCents: number;
+  dueDay: number;
+  reminderDaysBefore: number;
+  reminderHour: number;
+  categoryId: string | null;
+  notes: string;
+  remindersEnabled: number;
+};
+
+export type BillPayment = {
+  id: string;
+  billId: string;
+  month: string;
+  amountCents: number;
+  paidAt: string;
+  transactionId: string | null;
+};
+
+export type BillWithStatus = Bill & {
+  paidThisMonth: boolean;
+  paidAmountCents: number;
+  dueDateISO: string;
+  daysUntilDue: number;
 };
 
 export type BudgetTemplate = {

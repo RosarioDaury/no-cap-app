@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { EmptyState, currentMonthKey } from '@/src/components';
 import { useDb } from '@/src/hooks/DbProvider';
 import { useTheme } from '@/src/hooks/ThemeProvider';
-import { formatMoney, progressRatio } from '@/src/lib/format';
+import { formatMoney, hasMonthlyCap, progressRatio } from '@/src/lib/format';
 import { ThemeColors, type } from '@/src/theme/theme';
 
 const MONTH_SHORT = [
@@ -31,7 +31,9 @@ export function TrendsPane() {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const currency = settings?.currency ?? 'RD$';
-  const totalCap = categories.reduce((sum, c) => sum + c.capCents, 0);
+  const capped = categories.filter((c) => hasMonthlyCap(c.capCents));
+  const totalCap = capped.reduce((sum, c) => sum + c.capCents, 0);
+  const cappedSpentThisMonth = capped.reduce((sum, c) => sum + c.spentCents, 0);
   const hasSpend = history.some((h) => h.totalCents > 0);
   const hasIncome = incomeHistory.some((h) => h.totalCents > 0);
   const thisMonth = currentMonthKey();
@@ -65,10 +67,11 @@ export function TrendsPane() {
         <View style={{ marginBottom: 22 }}>
           <Text style={styles.section}>Spend against cap</Text>
           {spendRows.map((h) => {
-            const over = totalCap > 0 && h.totalCents > totalCap;
-            const under = totalCap > 0 && h.totalCents < totalCap;
-            const saved = totalCap - h.totalCents;
             const isCurrent = h.month === thisMonth;
+            const spendCents = isCurrent ? cappedSpentThisMonth : h.totalCents;
+            const over = totalCap > 0 && spendCents > totalCap;
+            const under = totalCap > 0 && spendCents < totalCap;
+            const saved = totalCap - spendCents;
             let status = 'No spend';
             let statusColor: string = colors.textMuted;
             if (isCurrent) {
@@ -77,15 +80,15 @@ export function TrendsPane() {
             } else if (over) {
               status = 'over cap';
               statusColor = colors.coral[500];
-            } else if (under && h.totalCents > 0) {
+            } else if (under && spendCents > 0) {
               status = `${formatMoney(saved, currency)} saved`;
               statusColor = colors.teal[700];
-            } else if (totalCap > 0 && h.totalCents === totalCap) {
+            } else if (totalCap > 0 && spendCents === totalCap) {
               status = 'on cap';
               statusColor = colors.textSecondary;
             }
-            const pct = totalCap > 0 ? Math.round(progressRatio(h.totalCents, totalCap) * 100) : 0;
-            const bar = Math.min(1, totalCap > 0 ? h.totalCents / totalCap : 0);
+            const pct = totalCap > 0 ? Math.round(progressRatio(spendCents, totalCap) * 100) : 0;
+            const bar = Math.min(1, totalCap > 0 ? spendCents / totalCap : 0);
             return (
               <View key={`spend-${h.month}`} style={styles.hairline}>
                 <View style={styles.rowTop}>
@@ -108,7 +111,7 @@ export function TrendsPane() {
                     />
                   </View>
                   <Text style={styles.barLabel}>
-                    {formatMoney(h.totalCents, currency)}
+                    {formatMoney(spendCents, currency)}
                     {totalCap > 0 ? ` / ${formatMoney(totalCap, currency)}` : ''}
                   </Text>
                 </View>
