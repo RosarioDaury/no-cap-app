@@ -17,6 +17,7 @@ This is a **single-repo monolith**. Keep product work in this repository. Do not
 3. Backend work: grow FastAPI as a **modular monolith** (`app/api`, `app/core`, then `app/services` when a feature needs it). Do not add a second Python process or a Node API.
 4. Run commands from the package directory (`mobile/` or `backend/`).
 5. If a feature needs both sides, define the API in `backend/` first, then call it from `mobile/`.
+6. Snapshot chat / accounts: read [`ASSISTANT.md`](ASSISTANT.md) before changing the AI path.
 
 ## Do not
 

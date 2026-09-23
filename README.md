@@ -83,7 +83,7 @@ Completing onboarding writes categories and settings only — **no demo seed**. 
 ### Insights
 
 - Cards for **over cap** and **at threshold %** only (no pace extrapolation)  
-- Chat stub requires **AI consent** and **internet**; otherwise clear gate messages  
+- Chat: opt-in AI + internet + signed-in account; phone sends a spend snapshot, server stores the session. See [`ASSISTANT.md`](ASSISTANT.md).  
 
 ### Settings
 
@@ -92,7 +92,8 @@ Completing onboarding writes categories and settings only — **no demo seed**. 
 | Display name | Home greeting |
 | Currency | RD$ or USD (`formatMoney` shows decimals for USD) |
 | Cap alerts | 50% / 80% / 90% / 100% |
-| Conversational AI | Opt-in; needs network to use chat UI |
+| Conversational AI | Opt-in; needs network **and** a NoCap account |
+| NoCap account | Register / sign in; chats stored on the API |
 | Theme | Dark or Light (persisted) |
 | Load sample data | Opt-in demo goals / debts / spends |
 | Export / import backup | JSON v1 via share sheet / document picker |
@@ -232,13 +233,13 @@ fastapi dev
 
 ---
 
-## Out of scope (v1)
+## Out of scope (still)
 
-- Live conversational AI / networked advice (UI stub only when consented + online)  
-- Accounts, cloud sync, multi-device  
+- Cloud sync of the on-device ledger / multi-device budget data  
 - Full accounting / bank linking  
+- RAG over stored snapshots (tables are ready; retrieval is not wired)
 
-Future AI analysis of monthly data is intentional later work; current Insights stay local and threshold-based.
+Live chat is snapshot-based and account-gated. Details: [`ASSISTANT.md`](ASSISTANT.md).
 
 ---
 
@@ -246,7 +247,7 @@ Future AI analysis of monthly data is intentional later work; current Insights s
 
 | File | Contents |
 | --- | --- |
-| [`AGENTS.md`](AGENTS.md) | How to work in this monolith (for humans and coding agents) |
+| [`ASSISTANT.md`](ASSISTANT.md) | Snapshot chat, accounts, and server sessions (current) |
 | [`mobile/`](mobile/) | Expo mobile app |
 | [`backend/README.md`](backend/README.md) | FastAPI setup |
 | [`REACT_NATIVE_HANDOFF.md`](REACT_NATIVE_HANDOFF.md) | Design → RN conversion brief |

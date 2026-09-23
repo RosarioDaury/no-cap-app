@@ -51,4 +51,7 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 *.egg-info/
+*.db
+*.db-shm
+*.db-wal
 .Python

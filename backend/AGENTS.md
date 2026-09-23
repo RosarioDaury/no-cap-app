@@ -7,8 +7,11 @@ FastAPI modular monolith. All server-side features belong in this package.
 | Path | Owns |
 |------|------|
 | `app/main.py` | FastAPI app instance, middleware, router includes |
-| `app/core/` | Settings and shared config |
-| `app/api/` | HTTP routes (one module per resource) |
+| `app/core/` | Settings, DB session, JWT |
+| `app/api/` | HTTP routes (`auth`, `conversations`, `assistant`, `health`) |
+| `app/schemas/` | Pydantic request/response models |
+| `app/services/` | Chat + LLM |
+| `app/models.py` | Users, conversations, messages, snapshots |
 | `tests/` | API tests |
 
 When a feature outgrows a single route file, add `app/services/` and `app/schemas/` — do not start a second app.
@@ -29,4 +32,5 @@ API docs: http://127.0.0.1:8000/docs
 - Pydantic models for request/response bodies.
 - Settings via `pydantic-settings` and `.env` (see `.env.example`).
 - Keep money as integer cents if it is persisted later, matching the mobile app.
-- Do not add a database until the feature that needs one is being built.
+
+Assistant / snapshot behavior for humans and agents: see the repo-root [`ASSISTANT.md`](../ASSISTANT.md).

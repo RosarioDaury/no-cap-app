@@ -8,6 +8,10 @@ dependencies = [
     "fastapi[standard]==0.141.1",
     "pydantic-settings==2.15.0",
     "python-dotenv==1.2.3",
+    "sqlalchemy==2.0.43",
+    "PyJWT==2.10.1",
+    "email-validator==2.3.0",
+    "cryptography==46.0.5",
 ]
 
 [project.optional-dependencies]
