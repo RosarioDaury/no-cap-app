@@ -1,20 +1,32 @@
 import { colors, typography, TintName, tintPalette } from '@/src/theme/theme';
 
+function showsCurrencyDecimals(currencySymbol: string): boolean {
+  return currencySymbol === 'USD' || currencySymbol === '$' || currencySymbol === '€';
+}
+
+/** Integer cents → the amount in the display currency (pesos, dollars, euros). */
+export function currencyAmount(cents: number, currencySymbol = 'RD$'): number {
+  const sign = cents < 0 ? -1 : 1;
+  const abs = Math.abs(cents);
+  const amount = showsCurrencyDecimals(currencySymbol)
+    ? Math.round(abs) / 100
+    : Math.floor(abs / 100);
+  return sign * amount;
+}
+
 /**
  * Format an amount stored as integer cents.
  * RD$ shows whole pesos (common for local budgeting); USD/EUR-style symbols show 2 decimals.
  */
 export function formatMoney(cents: number, currencySymbol = 'RD$'): string {
   const negative = cents < 0;
-  const abs = Math.abs(cents);
-  const showDecimals =
-    currencySymbol === 'USD' || currencySymbol === '$' || currencySymbol === '€';
-  const formatted = showDecimals
-    ? (abs / 100).toLocaleString('en-US', {
+  const abs = Math.abs(currencyAmount(cents, currencySymbol));
+  const formatted = showsCurrencyDecimals(currencySymbol)
+    ? abs.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })
-    : Math.floor(abs / 100).toLocaleString('en-US');
+    : abs.toLocaleString('en-US');
   return `${negative ? '-' : ''}${currencySymbol}${formatted}`;
 }
 

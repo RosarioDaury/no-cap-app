@@ -6,34 +6,34 @@ from pydantic import BaseModel, Field
 class CategorySnap(BaseModel):
     id: str = Field(max_length=80)
     name: str = Field(max_length=80)
-    cap_cents: int
-    spent_cents: int
+    cap: float
+    spent: float
     unlimited: bool = False
 
 
 class MonthTotal(BaseModel):
     month: str = Field(min_length=7, max_length=7)
-    total_cents: int
+    total: float
 
 
 class GoalSnap(BaseModel):
     id: str = Field(max_length=80)
     name: str = Field(max_length=80)
-    target_cents: int
-    saved_cents: int
+    target: float
+    saved: float
 
 
 class DebtSnap(BaseModel):
     id: str = Field(max_length=80)
     name: str = Field(max_length=80)
-    balance_cents: int
-    payment_cents: int
+    balance: float
+    payment: float
 
 
 class BillSnap(BaseModel):
     id: str = Field(max_length=80)
     name: str = Field(max_length=80)
-    amount_cents: int
+    amount: float
     due_day: int
     paid_this_month: bool
     days_until_due: int
@@ -43,22 +43,22 @@ class FactSnap(BaseModel):
     id: str = Field(max_length=80)
     type: str = Field(max_length=40)
     category_id: str | None = None
-    amount_cents: int | None = None
+    amount: float | None = None
     label: str = Field(max_length=240)
 
 
 class SpendSnapshot(BaseModel):
-    """Client-built fact pack. The model may only cite these numbers."""
+    """Client-built fact pack. Amounts are already in the snapshot currency, not cents."""
 
-    v: Literal[1] = 1
+    v: Literal[2] = 2
     currency: str = Field(max_length=8)
     as_of: str = Field(max_length=10)
     month: str = Field(min_length=7, max_length=7)
     days_left: int
-    income_cents: int = 0
-    spend_cents: int = 0
-    capped_spend_cents: int = 0
-    total_cap_cents: int = 0
+    income: float = 0
+    spend: float = 0
+    capped_spend: float = 0
+    total_cap: float = 0
     categories: list[CategorySnap] = Field(default_factory=list, max_length=40)
     monthly_spend: list[MonthTotal] = Field(default_factory=list, max_length=12)
     monthly_income: list[MonthTotal] = Field(default_factory=list, max_length=12)

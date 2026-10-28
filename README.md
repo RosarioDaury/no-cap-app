@@ -114,7 +114,7 @@ Completing onboarding writes categories and settings only — **no demo seed**. 
 | Files | `expo-file-system`, `expo-sharing`, `expo-document-picker` |
 | Network gate | `@react-native-community/netinfo` |
 | Dates | `@react-native-community/datetimepicker` |
-| Backend | FastAPI, Pydantic Settings, Uvicorn |
+| Backend | FastAPI, PostgreSQL (SQLAlchemy + Alembic), Pydantic Settings, Uvicorn |
 
 ---
 
@@ -225,6 +225,8 @@ cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env
+docker compose up -d
 fastapi dev
 ```
 

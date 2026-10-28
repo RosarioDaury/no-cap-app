@@ -1,33 +1,33 @@
 import { CategoryWithSpend, BillWithStatus, Debt, Goal } from '@/src/db/types';
 import { capAlertLevel } from '@/src/lib/capAlerts';
-import { daysLeftInMonth, hasMonthlyCap, todayISO } from '@/src/lib/format';
+import { currencyAmount, daysLeftInMonth, hasMonthlyCap, todayISO } from '@/src/lib/format';
 import { monthKey } from '@/src/lib/bills';
 
-export type SpendSnapshotV1 = {
-  v: 1;
+export type SpendSnapshotV2 = {
+  v: 2;
   currency: string;
   as_of: string;
   month: string;
   days_left: number;
-  income_cents: number;
-  spend_cents: number;
-  capped_spend_cents: number;
-  total_cap_cents: number;
+  income: number;
+  spend: number;
+  capped_spend: number;
+  total_cap: number;
   categories: {
     id: string;
     name: string;
-    cap_cents: number;
-    spent_cents: number;
+    cap: number;
+    spent: number;
     unlimited: boolean;
   }[];
-  monthly_spend: { month: string; total_cents: number }[];
-  monthly_income: { month: string; total_cents: number }[];
-  goals: { id: string; name: string; target_cents: number; saved_cents: number }[];
-  debts: { id: string; name: string; balance_cents: number; payment_cents: number }[];
+  monthly_spend: { month: string; total: number }[];
+  monthly_income: { month: string; total: number }[];
+  goals: { id: string; name: string; target: number; saved: number }[];
+  debts: { id: string; name: string; balance: number; payment: number }[];
   bills: {
     id: string;
     name: string;
-    amount_cents: number;
+    amount: number;
     due_day: number;
     paid_this_month: boolean;
     days_until_due: number;
@@ -36,7 +36,7 @@ export type SpendSnapshotV1 = {
     id: string;
     type: string;
     category_id: string | null;
-    amount_cents: number | null;
+    amount: number | null;
     label: string;
   }[];
 };
@@ -50,10 +50,11 @@ export function buildSpendSnapshot(input: {
   goals: Goal[];
   debts: Debt[];
   bills: BillWithStatus[];
-}): SpendSnapshotV1 {
+}): SpendSnapshotV2 {
   const month = monthKey();
+  const money = (cents: number) => currencyAmount(cents, input.currency);
   const capped = input.categories.filter((c) => hasMonthlyCap(c.capCents));
-  const facts: SpendSnapshotV1['facts'] = [];
+  const facts: SpendSnapshotV2['facts'] = [];
 
   for (const cat of capped) {
     const level = capAlertLevel(cat, input.threshold);
@@ -63,7 +64,7 @@ export function buildSpendSnapshot(input: {
       id: `${level}-${cat.id}`,
       type: level === 'over' ? 'over_cap' : 'threshold',
       category_id: cat.id,
-      amount_cents: level === 'over' ? Math.abs(remaining) : cat.spentCents,
+      amount: money(level === 'over' ? Math.abs(remaining) : cat.spentCents),
       label:
         level === 'over'
           ? `${cat.name} is over cap`
@@ -78,7 +79,7 @@ export function buildSpendSnapshot(input: {
       id: `debt-${debt.id}`,
       type: 'debt_payoff',
       category_id: null,
-      amount_cents: debt.balanceCents,
+      amount: money(debt.balanceCents),
       label: `${debt.name} clears in about ${months} month${months === 1 ? '' : 's'} at the current payment`,
     });
   }
@@ -88,43 +89,43 @@ export function buildSpendSnapshot(input: {
   const spendThisMonth = input.categories.reduce((s, c) => s + c.spentCents, 0);
 
   return {
-    v: 1,
+    v: 2,
     currency: input.currency,
     as_of: todayISO(),
     month,
     days_left: daysLeftInMonth(),
-    income_cents: incomeThisMonth,
-    spend_cents: spendThisMonth,
-    capped_spend_cents: capped.reduce((s, c) => s + c.spentCents, 0),
-    total_cap_cents: capped.reduce((s, c) => s + c.capCents, 0),
+    income: money(incomeThisMonth),
+    spend: money(spendThisMonth),
+    capped_spend: money(capped.reduce((s, c) => s + c.spentCents, 0)),
+    total_cap: money(capped.reduce((s, c) => s + c.capCents, 0)),
     categories: input.categories.slice(0, 40).map((c) => ({
       id: c.id,
       name: c.name,
-      cap_cents: c.capCents,
-      spent_cents: c.spentCents,
+      cap: money(c.capCents),
+      spent: money(c.spentCents),
       unlimited: !hasMonthlyCap(c.capCents),
     })),
-    monthly_spend: input.history.map((h) => ({ month: h.month, total_cents: h.totalCents })),
+    monthly_spend: input.history.map((h) => ({ month: h.month, total: money(h.totalCents) })),
     monthly_income: input.incomeHistory.map((h) => ({
       month: h.month,
-      total_cents: h.totalCents,
+      total: money(h.totalCents),
     })),
     goals: input.goals.slice(0, 20).map((g) => ({
       id: g.id,
       name: g.name,
-      target_cents: g.targetCents,
-      saved_cents: g.savedCents,
+      target: money(g.targetCents),
+      saved: money(g.savedCents),
     })),
     debts: input.debts.slice(0, 20).map((d) => ({
       id: d.id,
       name: d.name,
-      balance_cents: d.balanceCents,
-      payment_cents: d.paymentCents,
+      balance: money(d.balanceCents),
+      payment: money(d.paymentCents),
     })),
     bills: input.bills.slice(0, 30).map((b) => ({
       id: b.id,
       name: b.name,
-      amount_cents: b.amountCents,
+      amount: money(b.amountCents),
       due_day: b.dueDay,
       paid_this_month: b.paidThisMonth,
       days_until_due: b.daysUntilDue,

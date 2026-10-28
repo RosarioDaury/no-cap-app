@@ -1,5 +1,6 @@
 # Frozen install set for backend/pyproject.toml
 # Direct deps: fastapi[standard], pydantic-settings, python-dotenv, pytest
+alembic==1.16.5
 agent-detector==2.0.0
 annotated-doc==0.0.5
 annotated-types==0.8.0
@@ -22,11 +23,14 @@ httpx==0.28.1
 idna==3.20
 iniconfig==2.3.0
 Jinja2==3.1.6
+Mako==1.4.3
 markdown-it-py==4.2.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
 packaging==26.3
 pluggy==1.6.0
+psycopg==3.2.11
+psycopg-binary==3.2.11
 pydantic==2.13.5
 pydantic-extra-types==2.11.1
 pydantic-settings==2.15.0

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.schemas.snapshot import SpendSnapshot
 
@@ -16,6 +16,19 @@ class ChatResponse(BaseModel):
     snapshot_id: str
     title: str
     reply: str
+    error: str | None = None
+
+
+class RenameConversationRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+
+    @field_validator("title")
+    @classmethod
+    def title_ok(cls, value: str) -> str:
+        title = value.strip()
+        if not title:
+            raise ValueError("Title is required")
+        return title
 
 
 class ConversationSummary(BaseModel):

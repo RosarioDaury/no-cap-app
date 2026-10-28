@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     cors_origins: str = (
         "http://localhost:8081,http://localhost:19006,http://127.0.0.1:8081"
     )
-    database_url: str = "sqlite:///./nocap.db"
+    database_url: str = "postgresql+psycopg://nocap:nocap@127.0.0.1:5434/nocap"
     jwt_secret: str = "dev-only-change-me"
     pii_key: str = "dev-only-pii-key-change-me"
     jwt_expire_minutes: int = 60 * 24 * 14

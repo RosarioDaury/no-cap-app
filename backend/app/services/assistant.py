@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -47,6 +47,28 @@ def message_count(db: Session, conversation_id: str) -> int:
     return int(
         db.scalar(select(func.count()).where(Message.conversation_id == conversation_id)) or 0
     )
+
+
+def rename_conversation(db: Session, user: User, conversation_id: str, title: str) -> Conversation | None:
+    convo = get_conversation(db, user, conversation_id)
+    if convo is None:
+        return None
+    convo.title = title.strip()[:120]
+    convo.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(convo)
+    return convo
+
+
+def delete_conversation(db: Session, user: User, conversation_id: str) -> bool:
+    convo = get_conversation(db, user, conversation_id)
+    if convo is None:
+        return False
+    db.execute(delete(Message).where(Message.conversation_id == convo.id))
+    db.execute(delete(Snapshot).where(Snapshot.conversation_id == convo.id))
+    db.delete(convo)
+    db.commit()
+    return True
 
 
 def chat(db: Session, user: User, req: ChatRequest) -> ChatResponse:
@@ -103,6 +125,10 @@ def chat(db: Session, user: User, req: ChatRequest) -> ChatResponse:
     history = [{"role": m.role, "body": m.body} for m in prior]
 
     generated = generate_reply(req.snapshot, req.message.strip(), history)
+    reply = str(generated.get("reply") or "").strip()
+    auto_title = str(generated.get("title") or "").strip()
+    error = generated.get("error")
+    error_code = error if isinstance(error, str) and error else None
 
     user_msg = Message(
         id=new_id("msg"),
@@ -115,13 +141,13 @@ def chat(db: Session, user: User, req: ChatRequest) -> ChatResponse:
         id=new_id("msg"),
         conversation_id=convo.id,
         role="assistant",
-        body=generated["reply"],
+        body=reply,
         created_at=now,
     )
     db.add(user_msg)
     db.add(assistant_msg)
     if convo.title in {"New chat", ""} or message_count(db, convo.id) <= 1:
-        convo.title = generated["title"] or convo.title
+        convo.title = auto_title or convo.title
     convo.updated_at = now
     db.commit()
 
@@ -131,5 +157,6 @@ def chat(db: Session, user: User, req: ChatRequest) -> ChatResponse:
         message_id=assistant_msg.id,
         snapshot_id=snap.id,
         title=convo.title,
-        reply=generated["reply"],
+        reply=reply,
+        error=error_code,
     )

@@ -17,26 +17,26 @@ def client():
 
 
 SNAPSHOT = {
-    "v": 1,
+    "v": 2,
     "currency": "RD$",
     "as_of": "2026-09-22",
     "month": "2026-09",
     "days_left": 9,
-    "income_cents": 8500000,
-    "spend_cents": 3200000,
-    "capped_spend_cents": 2800000,
-    "total_cap_cents": 5000000,
+    "income": 85000,
+    "spend": 32000,
+    "capped_spend": 28000,
+    "total_cap": 50000,
     "categories": [
         {
             "id": "cat_food",
             "name": "Groceries",
-            "cap_cents": 2500000,
-            "spent_cents": 1800000,
+            "cap": 25000,
+            "spent": 18000,
             "unlimited": False,
         }
     ],
-    "monthly_spend": [{"month": "2026-09", "total_cents": 3200000}],
-    "monthly_income": [{"month": "2026-09", "total_cents": 8500000}],
+    "monthly_spend": [{"month": "2026-09", "total": 32000}],
+    "monthly_income": [{"month": "2026-09", "total": 85000}],
     "goals": [],
     "debts": [],
     "bills": [],
@@ -45,7 +45,7 @@ SNAPSHOT = {
             "id": "warn-cat_food",
             "type": "threshold",
             "category_id": "cat_food",
-            "amount_cents": 1800000,
+            "amount": 18000,
             "label": "Groceries is at 72% of its cap",
         }
     ],
@@ -205,7 +205,9 @@ def test_chat_creates_server_session(client: TestClient) -> None:
     assert body["conversation_id"].startswith("convo_")
     assert body["snapshot_id"].startswith("snap_")
     assert body["user_id"].startswith("user_")
-    assert "Groceries" in body["reply"] or "groceries" in body["reply"].lower() or body["reply"]
+    assert body["error"] == "provider_not_configured"
+    assert "LLM_API_KEY" in body["reply"]
+    assert body["reply"]
 
     listed = client.get("/v1/conversations", headers=headers)
     assert listed.status_code == 200
@@ -236,3 +238,84 @@ def test_chat_creates_server_session(client: TestClient) -> None:
         headers={"Authorization": f"Bearer {other}"},
     )
     assert stolen.status_code == 404
+
+
+def test_rename_and_delete_conversation(client: TestClient) -> None:
+    token = _register(client, "rename@example.com", "renamer")["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    created = client.post(
+        "/v1/assistant/chat",
+        json={"message": "Name this later", "snapshot": SNAPSHOT},
+        headers=headers,
+    )
+    assert created.status_code == 200, created.text
+    convo_id = created.json()["conversation_id"]
+    assert created.json()["error"] == "provider_not_configured"
+
+    renamed = client.patch(
+        f"/v1/conversations/{convo_id}",
+        json={"title": "Groceries check"},
+        headers=headers,
+    )
+    assert renamed.status_code == 200, renamed.text
+    assert renamed.json()["title"] == "Groceries check"
+
+    listed = client.get("/v1/conversations", headers=headers)
+    assert listed.json()[0]["title"] == "Groceries check"
+
+    other = _register(client, "nosnoop@example.com", "nosnoop")["access_token"]
+    denied = client.patch(
+        f"/v1/conversations/{convo_id}",
+        json={"title": "Stolen"},
+        headers={"Authorization": f"Bearer {other}"},
+    )
+    assert denied.status_code == 404
+
+    deleted = client.delete(f"/v1/conversations/{convo_id}", headers=headers)
+    assert deleted.status_code == 204
+    gone = client.get(f"/v1/conversations/{convo_id}", headers=headers)
+    assert gone.status_code == 404
+    empty = client.get("/v1/conversations", headers=headers)
+    assert empty.json() == []
+
+
+def test_chat_reports_provider_quota(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    import httpx
+
+    settings.llm_api_key = "sk-test-not-real"
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs) -> None:
+            pass
+
+        def __enter__(self) -> "FakeClient":
+            return self
+
+        def __exit__(self, *args) -> None:
+            return None
+
+        def post(self, url: str, json=None, headers=None) -> httpx.Response:
+            request = httpx.Request("POST", url)
+            return httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You have no credits remaining.",
+                        "type": "insufficient_quota",
+                        "code": "credit_balance_exhausted",
+                    }
+                },
+                request=request,
+            )
+
+    monkeypatch.setattr(httpx, "Client", FakeClient)
+    token = _register(client, "quota@example.com", "quota")["access_token"]
+    response = client.post(
+        "/v1/assistant/chat",
+        json={"message": "How am I doing?", "snapshot": SNAPSHOT},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["error"] == "provider_quota"
+    assert "credits" in body["reply"].lower()

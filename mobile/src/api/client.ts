@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { SpendSnapshotV1 } from '@/src/lib/spendSnapshot';
+import { SpendSnapshotV2 } from '@/src/lib/spendSnapshot';
 
 export class ApiError extends Error {
   status: number;
@@ -54,6 +54,7 @@ export type ChatMessage = {
   role: 'user' | 'assistant' | string;
   body: string;
   created_at: string;
+  error?: boolean;
 };
 
 export type ConversationSummary = {
@@ -79,6 +80,7 @@ export type ChatResponse = {
   snapshot_id: string;
   title: string;
   reply: string;
+  error?: string | null;
 };
 
 async function request<T>(
@@ -162,9 +164,24 @@ export function getConversation(token: string, id: string) {
   return request<ConversationDetail>(`/v1/conversations/${id}`, { token });
 }
 
+export function renameConversation(token: string, id: string, title: string) {
+  return request<ConversationSummary>(`/v1/conversations/${id}`, {
+    method: 'PATCH',
+    token,
+    body: { title },
+  });
+}
+
+export function deleteConversation(token: string, id: string) {
+  return request<void>(`/v1/conversations/${id}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
 export function sendChat(
   token: string,
-  input: { conversationId?: string | null; message: string; snapshot: SpendSnapshotV1 },
+  input: { conversationId?: string | null; message: string; snapshot: SpendSnapshotV2 },
 ) {
   return request<ChatResponse>('/v1/assistant/chat', {
     method: 'POST',
