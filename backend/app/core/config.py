@@ -1,4 +1,14 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def postgres_sqlalchemy_url(url: str) -> str:
+    """Railway and many hosts inject postgresql://; this app uses psycopg 3."""
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url.removeprefix("postgres://")
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url.removeprefix("postgresql://")
+    return url
 
 
 class Settings(BaseSettings):
@@ -22,6 +32,13 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4.1-mini"
     snapshot_max_bytes: int = 8192
     chat_history_limit: int = 8
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _psycopg_database_url(cls, value: object) -> object:
+        if isinstance(value, str):
+            return postgres_sqlalchemy_url(value)
+        return value
 
     @property
     def cors_origin_list(self) -> list[str]:
