@@ -42,11 +42,13 @@
       ],
       "@react-native-community/datetimepicker",
       "expo-sharing",
+      "./plugins/withLocalNotificationsOnly.js",
       [
         "expo-notifications",
         {
           "color": "#22D3EE",
-          "defaultChannel": "bills"
+          "defaultChannel": "bills",
+          "enableBackgroundRemoteNotifications": false
         }
       ],
       "expo-secure-store"
