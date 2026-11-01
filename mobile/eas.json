@@ -6,7 +6,10 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://no-cap-app-production.up.railway.app"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -16,7 +19,11 @@
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "environment": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://no-cap-app-production.up.railway.app"
+      }
     }
   },
   "submit": {
